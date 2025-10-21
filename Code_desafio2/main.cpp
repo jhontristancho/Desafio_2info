@@ -1,1 +1,1 @@
-//nucleo central del desafio
+//nucleo central

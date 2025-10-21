@@ -25,9 +25,13 @@ public:
     void reproducir(int calidad);
     float getDuracion() const { return duracion; }
     int getIdCompleto() const { return idCompleto; }
+const std::string& getNombre() const { return nombre; }
     Creditos& getCreditos();
     void setArtista(Artista* art);
     void setAlbum(Album* alb);
+    int getReproducciones() const { return reproducciones; }
+    const Creditos& getCreditos() const { return creditos; }
+
 };
 
 #endif // CANCION_H

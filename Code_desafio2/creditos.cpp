@@ -1,21 +1,23 @@
 #include "creditos.h"
 #include <iostream>
 using namespace std;
-Creditos& Creditos::operator=(const Creditos& otra) {
-    if (this == &otra) {
-        return *this;
-    }
+Creditos::Creditos()
+    : productores(nullptr), numProductores(0),
+    musicos(nullptr), numMusicos(0),
+    compositores(nullptr), numCompositores(0) {}
+Creditos::~Creditos() {
     delete[] productores;
     delete[] musicos;
     delete[] compositores;
-    numProductores = otra.numProductores;
-    numMusicos = otra.numMusicos;
-    numCompositores = otra.numCompositores;
+}
+Creditos::Creditos(const Creditos& otra)
+    : numProductores(otra.numProductores), numMusicos(otra.numMusicos),
+    numCompositores(otra.numCompositores) {
     auto deepCopy = [](Colaborador*& dest, const Colaborador* src, int num) {
         if (num > 0 && src != nullptr) {
             dest = new Colaborador[num];
             for (int i = 0; i < num; ++i) {
-                dest[i] = src[i]; // copia cada objeto Colaborador
+                dest[i] = src[i];
             }
         } else {
             dest = nullptr;
@@ -24,7 +26,6 @@ Creditos& Creditos::operator=(const Creditos& otra) {
     deepCopy(productores, otra.productores, numProductores);
     deepCopy(musicos, otra.musicos, numMusicos);
     deepCopy(compositores, otra.compositores, numCompositores);
-    return *this;
 }
 void Creditos::setProductores(const Colaborador* prod, int num) {
     delete[] productores;

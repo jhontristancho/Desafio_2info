@@ -14,11 +14,11 @@ public:
     Creditos();
     ~Creditos();
     Creditos(const Creditos& otra);
-    Creditos& operator=(const Creditos& otra);
     void setMusicos(const Colaborador* mus, int num);
     void setCompositores(const Colaborador* comp, int num);
     void setProductores(const Colaborador* prod, int num);
+    void getNumMusicos(int numMusicos);
+    void getNumproductores(int numProdcutores);
     void mostrarCreditos() const;
 };
-
 #endif // CREDITOS_H

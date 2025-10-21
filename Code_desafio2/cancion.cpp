@@ -8,7 +8,7 @@ Cancion::Cancion(int id, const std::string& nom, float dur, const std::string& r
 Cancion::Cancion(int id, const std::string& nom, float dur, const std::string& r128, const std::string& r320,
                  Album* a, Artista* art, const Creditos& cred)
     : idCompleto(id), nombre(nom), duracion(dur), reproducciones(0), ruta128(r128),
-    ruta320(r320), album(a), artista(art), creditos(cred) {}
+    ruta320(r320), artista(art), album(a), creditos(cred) {}
 
 Cancion::Cancion()
     : idCompleto(0), nombre(""), duracion(0.0f), reproducciones(0),
