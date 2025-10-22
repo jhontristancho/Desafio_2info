@@ -20,7 +20,7 @@ void probarPublicidades(UdeATunesDataset& dataset);
 void probarArtistasYAlbumes(UdeATunesDataset& dataset);
 
 int main() {
-    cout << "============================================" << endl;
+
     cout << "       PRUEBA COMPLETA UDEATUNES DATASET   " << endl;
     cout << "============================================" << endl;
 
