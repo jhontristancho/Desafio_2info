@@ -115,3 +115,22 @@ Album* Artista::buscarAlbum(int id) const {
     }
     return nullptr;
 }
+void Artista::mostrarInfo() const {
+    cout << "--- Info Artista ---" << endl;
+    cout << "ID:       " << idArtista << endl;
+    cout << "Nombre:   " << nombre << endl;
+    cout << "Pais:     " << paisOrigen << endl;
+    cout << "Albumes (" << numAlbumes << "):" << endl;
+
+    if (numAlbumes > 0) {
+        for (int i = 0; i < numAlbumes; ++i) {
+            if (albumes[i]) {
+                cout << "  " << (i+1) << ". " << albumes[i]->getNombre()
+                << " (ID: " << albumes[i]->getIdAlbum() << ")" << endl;
+            }
+        }
+    } else {
+        cout << "  (Sin albumes registrados)" << endl;
+    }
+    cout << "----------------------" << endl;
+}

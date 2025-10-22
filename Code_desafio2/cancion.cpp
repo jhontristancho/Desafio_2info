@@ -1,18 +1,26 @@
-// Cancion.cpp
 #include "Cancion.h"
 #include <iostream>
 using namespace std;
-Cancion::Cancion(int id, const std::string& nom, float dur, const std::string& r128, const std::string& r320)
-    : idCompleto(id), nombre(nom), duracion(dur), reproducciones(0), ruta128(r128),
-    ruta320(r320), artista(nullptr), album(nullptr) {}
-Cancion::Cancion(int id, const std::string& nom, float dur, const std::string& r128, const std::string& r320,
-                 Album* a, Artista* art, const Creditos& cred)
-    : idCompleto(id), nombre(nom), duracion(dur), reproducciones(0), ruta128(r128),
-    ruta320(r320), artista(art), album(a), creditos(cred) {}
 
+// Constructor 1
+Cancion::Cancion(const std::string& id, const std::string& nom, float dur,
+                 const std::string& r128, const std::string& r320)
+    : idCompleto(id), nombre(nom), duracion(dur), reproducciones(0),
+    ruta128(r128), ruta320(r320), artista(nullptr), album(nullptr) {}
+
+// Constructor 2
+Cancion::Cancion(const std::string& id, const std::string& nom, float dur,
+                 const std::string& r128, const std::string& r320,
+                 Album* a, Artista* art, const Creditos& cred)
+    : idCompleto(id), nombre(nom), duracion(dur), reproducciones(0),
+    ruta128(r128), ruta320(r320), artista(art), album(a), creditos(cred) {}
+
+// Constructor por defecto
 Cancion::Cancion()
-    : idCompleto(0), nombre(""), duracion(0.0f), reproducciones(0),
-    ruta128(""), ruta320(""), artista(nullptr), album(nullptr){}
+    : idCompleto(""), nombre(""), duracion(0.0f), reproducciones(0),
+    ruta128(""), ruta320(""), artista(nullptr), album(nullptr) {}
+
+// Operador de comparación
 bool Cancion::operator==(const Cancion& otra) const {
     return this->idCompleto == otra.idCompleto;
 }
@@ -23,6 +31,5 @@ void Cancion::reproducir(int calidad) {
     reproducciones++;
 }
 
-Creditos& Cancion::getCreditos() { return creditos; }
-void Cancion::setArtista(Artista* art) { this->artista = art; }
-void Cancion::setAlbum(Album* alb) { this->album = alb; }
+// ✅ Los getters ya están implementados en el header
+// No necesitan implementación adicional en el .cpp

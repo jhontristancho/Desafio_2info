@@ -8,8 +8,11 @@ SOURCES += \
         artista.cpp \
         cancion.cpp \
         creditos.cpp \
+        listafavoritos.cpp \
         main.cpp \
-        udeatunesdataset.cpp
+        publicidad.cpp \
+        udeatunesdataset.cpp \
+        usuarios.cpp
 
 HEADERS += \
     Colaborador.h \
@@ -17,4 +20,7 @@ HEADERS += \
     artista.h \
     cancion.h \
     creditos.h \
-    udeatunesdataset.h
+    listafavoritos.h \
+    publicidad.h \
+    udeatunesdataset.h \
+    usuarios.h

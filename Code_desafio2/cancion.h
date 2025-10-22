@@ -6,32 +6,48 @@ class Album;
 class Artista;
 class Cancion {
 private:
-    int idCompleto;
+    std::string idCompleto;
     std::string nombre;
     float duracion;
     int reproducciones;
-    std::string ruta128; // cancion pa los estandar
-    std::string ruta320; // y esta pa los premium
-    Artista* artista;
+    std::string ruta128;
+    std::string ruta320;
+    Artista* artista;           // ✅ Ya existe
     Album* album;
     Creditos creditos;
 
 public:
-    Cancion(int id, const std::string& nom, float dur, const std::string& r128, const std::string& r320);
-    Cancion(int id, const std::string& nom, float dur, const std::string& r128, const std::string& r320,
+    // Constructores
+    Cancion(const std::string& id, const std::string& nom, float dur,
+            const std::string& r128, const std::string& r320);
+
+    Cancion(const std::string& id, const std::string& nom, float dur,
+            const std::string& r128, const std::string& r320,
             Album* a, Artista* art, const Creditos& cred);
+
     Cancion();
-    bool operator==(const Cancion& otra) const;
-    void reproducir(int calidad);
+
+    // Getters
+    std::string getIdCompleto() const { return idCompleto; }
+    std::string getNombre() const { return nombre; }           // ✅ Ya existe
     float getDuracion() const { return duracion; }
-    int getIdCompleto() const { return idCompleto; }
-const std::string& getNombre() const { return nombre; }
-    Creditos& getCreditos();
-    void setArtista(Artista* art);
-    void setAlbum(Album* alb);
     int getReproducciones() const { return reproducciones; }
+    std::string getRuta128() const { return ruta128; }
+    std::string getRuta320() const { return ruta320; }
+
+    // ✅ AGREGAR ESTOS GETTERS
+    Artista* getArtista() const { return artista; }
+    Album* getAlbum() const { return album; }
+    Creditos& getCreditos() { return creditos; }
     const Creditos& getCreditos() const { return creditos; }
 
-};
+    // Setters
+    void setIdCompleto(const std::string& id) { idCompleto = id; }
+    void setArtista(Artista* art) { artista = art; }
+    void setAlbum(Album* alb) { album = alb; }
 
+    // Operadores y métodos
+    bool operator==(const Cancion& otra) const;
+    void reproducir(int calidad);
+};
 #endif // CANCION_H

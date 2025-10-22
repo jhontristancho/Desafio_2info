@@ -146,7 +146,7 @@ void Album::mostrarInfo() const {
     }
     cout << endl;
 }
-Cancion* Album::buscarCancion(int id) const {
+Cancion* Album::buscarCancion(const std::string& id) const {
     for (int i = 0; i < numCanciones; ++i) {
         if (canciones[i]->getIdCompleto() == id) {
             return canciones[i];

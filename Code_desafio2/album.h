@@ -14,6 +14,7 @@ private:
     std::string portadaRuta;
     std::string* generos;
     int numGeneros;
+    std::string anio;
     Cancion** canciones;
     int numCanciones;
     int capacidadCanciones;
@@ -30,11 +31,12 @@ bool agregarCancion(Cancion* c);
     void mostrarInfo() const;
     int getIdAlbum() const { return idAlbum; }
     float getDuracionTotal() const { return duracionTotal; }
-    Cancion* buscarCancion(int id) const;
+    Cancion* buscarCancion(const std::string& id) const;
     void setArtista(Artista* art) { artista = art; }
     const std::string& getNombre() const { return nombre; }
     const std::string& getPortadaRuta() const { return portadaRuta; }
     int getNumCanciones() const { return numCanciones; }
+    std::string getAnio() const { return anio; }
     Cancion* getCancionAt(int idx) {
         if (idx >= 0 && idx < numCanciones)
             return canciones[idx];
