@@ -33,7 +33,7 @@ private:
     std::string obtenerCampo(const std::string& linea, int campo) const;
     std::string buscarLineaPorID(const std::string* lineas, int numLineas, const std::string& idBuscado, int campoID) const;
     // Métodos de carga específicos
-    bool cargarArtistas();
+
     bool cargarColaboradores();
     bool cargarAlbumesYCanciones();
     bool procesarAlbum(const std::string& lineaAlbum, int indice);
@@ -53,7 +53,6 @@ private:
     int ultimaPublicidadMostrada;
     bool cargarPublicidadesPorDefecto();
     void resizePublicidades();
-
 public:
     UdeATunesDataset();
     ~UdeATunesDataset();
@@ -72,6 +71,11 @@ public:
             return &usuarios[idx];
         return nullptr;
     }
+    bool cargarArtistas();
+    Cancion* reproducirCancionAleatoria(Usuarios* usuario);
+    void menuFavoritosPremium(Usuarios* usuario);
+    void reproducirListaFavoritos(Usuarios* usuario, bool aleatoria);
+    void iniciarSesionYReproducir();
     // Getters para acceso externo
     Artista* getArtistas() const { return artistas; }
       int getNumPublicidades() const { return numPublicidades; }

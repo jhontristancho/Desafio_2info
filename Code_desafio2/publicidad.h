@@ -13,9 +13,9 @@ public:
     Publicidad();
     Publicidad(int id, const char* mensaje, char categoria); // ✅ AGREGAR ID
     Publicidad(const Publicidad &p);
-
     // Destructor
     ~Publicidad();
+    Publicidad& operator=(const Publicidad& otra);
 
     // Getters
     int getId() const { return id; }  // ✅ AGREGAR

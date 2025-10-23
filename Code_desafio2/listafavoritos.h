@@ -10,11 +10,9 @@ private:
     int capacidad;
     static const int MAX_CANCIONES = 10000;
     ListaFavoritos* listaSeguida;
-
-    const ListaFavoritos* obtenerListaExponer() const;
+;
     void redimensionar(int nuevaCapacidad);
     bool contieneCancion(const std::string& id) const;  // Cambiar a string
-
 public:
     // Constructores y destructor
     ListaFavoritos();
@@ -28,11 +26,10 @@ public:
     void mostrarLista() const;
     void reproducir(bool aleatoria) const;
     bool agregarLista(ListaFavoritos* otra);
-
     // Sobrecarga de operadores
     ListaFavoritos operator+(const ListaFavoritos &otra) const;
-
     // Getters
+    const ListaFavoritos* obtenerListaExponer() const;
     int getCapacidad() const { return capacidad; }
     void mostrarLista(const UdeATunesDataset* dataset) const;
     const ListaFavoritos* getListaSeguida() const { return listaSeguida; }
