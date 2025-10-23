@@ -3,6 +3,9 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <thread>
+#include <chrono>
+using namespace std::chrono_literals;
 using namespace std;
 const int GROW_FACTOR = 2;
 const int DATASET_CAPACIDAD_INICIAL = 10;
@@ -787,4 +790,268 @@ string* UdeATunesDataset::guardarDinamico(const string& nombreArchivo, int& numL
     capacidadFinal = capacidad;
     cout << " fue correcto la carga de " << nombreArchivo << " - " << numLineas << "numero de lineas leidas" << endl;
     return lineas;
+}
+Cancion* UdeATunesDataset::reproducirCancionAleatoria(Usuarios* usuario) {
+    if (numLineasCanciones == 0) {
+        cout << "❌ No hay canciones cargadas.\n";
+        return nullptr;
+    }
+
+    int indiceCancion = rand() % numLineasCanciones;
+    string lineaCancion = lineasCanciones[indiceCancion];
+
+    string idCancion = obtenerCampo(lineaCancion, 0);
+    string nombreCancion = obtenerCampo(lineaCancion, 1);
+    string duracionStr = obtenerCampo(lineaCancion, 2);
+    string ruta128 = obtenerCampo(lineaCancion, 3);
+    string idAlbumCompleto = idCancion.substr(0, 7);
+    string idArtistaStr = idCancion.substr(0, 5);
+
+    Artista* artista = getArtista(stol(idArtistaStr));
+    string nombreArtista = artista ? artista->getNombre() : "Desconocido";
+
+    Album* albumEncontrado = nullptr;
+    string rutaPortada = "Desconocida";
+    if (artista) {
+        for (int j = 0; j < artista->getNumAlbumes(); ++j) {
+            Album* a = artista->getAlbumAt(j);
+            if (a && to_string(a->getIdAlbum()) == idAlbumCompleto) {
+                albumEncontrado = a;
+                rutaPortada = a->getPortadaRuta();
+                break;
+            }
+        }
+    }
+
+    if (usuario->getTipoMembresia() == 0) {
+        Publicidad* pub = obtenerPublicidadAleatoria();
+        if (pub) {
+            cout << "\n📢 [PUBLICIDAD] " << pub->getMensaje()
+                << " (" << pub->getCategoria() << ")" << endl;
+        }
+    }
+
+    cout << "\n🎶 Reproduciendo canción:\n";
+    cout << "--------------------------------------\n";
+    cout << "Artista: " << nombreArtista << endl;
+    cout << "Álbum: " << (albumEncontrado ? albumEncontrado->getNombre() : "Desconocido") << endl;
+    cout << "Ruta portada: " << rutaPortada << endl;
+    cout << "Canción: " << nombreCancion << endl;
+    cout << "Ruta archivo: " << ruta128 << endl;
+    cout << "Duración: " << duracionStr << " minutos\n";
+    cout << "--------------------------------------\n";
+
+    return new Cancion(idCancion, nombreCancion, parseDuracion(duracionStr), ruta128, "");
+}
+void UdeATunesDataset::reproducirListaFavoritos(Usuarios* usuario, bool aleatoria) {
+    const ListaFavoritos* lista = usuario->getListaSeguida();
+    if (!lista || lista->getNumCanciones() == 0) {
+        cout << "⚠️ La lista de favoritos está vacía.\n";
+        return;
+    }
+
+    cout << "\n🎧 Reproduciendo lista de favoritos (" << lista->getNumCanciones() << " canciones)\n";
+
+    int M = 6;
+    string historial[6];
+    int totalHistorial = 0;
+    bool reproduciendo = true;
+    int indiceActual = aleatoria ? rand() % lista->getNumCanciones() : 0;
+
+    while (reproduciendo) {
+        string id = lista->getCancionesIds()[indiceActual];
+        Cancion* c = buscarCancion(id);
+        if (c) {
+            cout << "\n▶️ Canción actual (" << (indiceActual + 1) << "/" << lista->getNumCanciones() << "):\n";
+            cout << "   " << c->getNombre() << " (ID: " << id << ")\n";
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+        }
+
+        cout << "\nOpciones: 1.Siguiente  2.Previo  3.Detener\n> ";
+        int op;
+        cin >> op;
+
+        if (op == 1) {
+            if (totalHistorial < M) historial[totalHistorial++] = id;
+            indiceActual = aleatoria ? rand() % lista->getNumCanciones() : (indiceActual + 1) % lista->getNumCanciones();
+        } else if (op == 2) {
+            if (totalHistorial == 0)
+                cout << "⚠️ No hay canciones previas.\n";
+            else {
+                indiceActual = rand() % lista->getNumCanciones();
+                totalHistorial--;
+            }
+        } else {
+            reproduciendo = false;
+            cout << "🛑 Fin de reproducción.\n";
+        }
+        delete c;
+    }
+}
+
+void UdeATunesDataset::menuFavoritosPremium(Usuarios* usuario) {
+    if (usuario->getTipoMembresia() != 1) {
+        cout << "⚠️ Solo disponible para usuarios Premium.\n";
+        return;
+    }
+
+    bool continuar = true;
+    while (continuar) {
+        cout << "\n=== MENÚ DE FAVORITOS ===\n";
+        cout << "1. Mostrar mi lista\n";
+        cout << "2. Agregar canción\n";
+        cout << "3. Eliminar canción\n";
+        cout << "4. Seguir lista de otro usuario\n";
+        cout << "5. Reproducir mi lista\n";
+        cout << "6. Salir\n";
+        cout << "> ";
+        int opcion;
+        cin >> opcion;
+
+        switch (opcion) {
+        case 1:
+            usuario->getListaFavoritos().mostrarLista(this);
+            break;
+        case 2: {
+            string id;
+            cout << "Ingrese ID de la canción a agregar: ";
+            cin >> id;
+            usuario->getListaFavoritos().agregarCancion(id);
+            break;
+        }
+        case 3: {
+            string id;
+            cout << "Ingrese ID de la canción a eliminar: ";
+            cin >> id;
+            usuario->getListaFavoritos().eliminarCancion(id);
+            break;
+        }
+        case 4: {
+            string otroNick;
+            cout << "Ingrese nickname del usuario a seguir: ";
+            cin >> otroNick;
+            Usuarios* otro = nullptr;
+            for (int i = 0; i < numUsuarios; ++i) {
+                if (usuarios[i].getNickname() == otroNick) {
+                    otro = &usuarios[i];
+                    break;
+                }
+            }
+            if (otro) {
+                usuario->seguirListaFavoritos(&otro->getListaFavoritos());
+                cout << "👥 Ahora sigues la lista de " << otroNick << endl;
+            } else {
+                cout << "❌ Usuario no encontrado.\n";
+            }
+            break;
+        }
+        case 5: {
+            bool aleatoria;
+            cout << "¿Reproducción aleatoria? (1=Sí / 0=No): ";
+            cin >> aleatoria;
+            reproducirListaFavoritos(usuario, aleatoria);
+            break;
+        }
+        case 6:
+            continuar = false;
+            break;
+        default:
+            cout << "❌ Opción inválida.\n";
+        }
+    }
+}
+void UdeATunesDataset::iniciarSesionYReproducir() {
+    cout << "\n========== BIENVENIDO A UDEATUNES ==========\n";
+    cout << "Ingrese su nickname para iniciar sesión: ";
+    string nickname;
+    cin >> nickname;
+
+    Usuarios* usuario = nullptr;
+    for (int i = 0; i < numUsuarios; ++i) {
+        if (usuarios[i].getNickname() == nickname) {
+            usuario = &usuarios[i];
+            break;
+        }
+    }
+
+    if (!usuario) {
+        cout << "❌ Usuario no encontrado.\n";
+        return;
+    }
+
+    cout << "\n✅ Sesión iniciada como: " << usuario->getNickname()
+         << " (" << (usuario->getTipoMembresia() == 0 ? "Estándar" : "Premium") << ")\n";
+
+    // === USUARIO ESTÁNDAR ===
+    if (usuario->getTipoMembresia() == 0) {
+        cout << "\n🎧 Reproducción automática (máx 5 canciones)...\n";
+        const int K = 5;
+        for (int i = 0; i < K; ++i) {
+            Cancion* c = reproducirCancionAleatoria(usuario);
+            if (!c) break;
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+            delete c;
+        }
+        cout << "\n🛑 Fin de la reproducción (5 canciones).\n";
+        return;
+    }
+
+    // === USUARIO PREMIUM ===
+    cout << "\n🎵 Bienvenido al modo Premium.\n";
+    bool repetir = false;
+    int totalHistorial = 0;
+    string historial[4];
+    bool reproduciendo = true;
+
+    Cancion* actual = reproducirCancionAleatoria(usuario);
+
+    while (reproduciendo) {
+        cout << "\nOpciones:\n";
+        cout << "1. Siguiente canción\n";
+        cout << "2. Canción previa\n";
+        cout << "3. Activar/desactivar repetir\n";
+        cout << "4. Menú de favoritos\n";
+        cout << "5. Detener\n";
+        cout << "> ";
+        int opcion;
+        cin >> opcion;
+
+        switch (opcion) {
+        case 1: // siguiente
+            if (actual && totalHistorial < 4) historial[totalHistorial++] = actual->getIdCompleto();
+            delete actual;
+            actual = reproducirCancionAleatoria(usuario);
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+            break;
+        case 2: // previa
+            if (totalHistorial == 0) {
+                cout << "⚠️ No hay canciones previas.\n";
+            } else {
+                string idAnterior = historial[--totalHistorial];
+                delete actual;
+                actual = buscarCancion(idAnterior);
+                if (actual) {
+                    cout << "\n⏪ Reproduciendo canción anterior: " << idAnterior << endl;
+                    std::this_thread::sleep_for(std::chrono::seconds(3));
+                }
+            }
+            break;
+        case 3: // repetir
+            repetir = !repetir;
+            cout << (repetir ? "🔁 Repetir activado.\n" : "⏹️ Repetir desactivado.\n");
+            if (repetir && actual) std::this_thread::sleep_for(std::chrono::seconds(3));
+            break;
+        case 4: // favoritos
+            menuFavoritosPremium(usuario);
+            break;
+        case 5:
+            reproduciendo = false;
+            cout << "🛑 Reproducción detenida.\n";
+            break;
+        default:
+            cout << "❌ Opción inválida.\n";
+        }
+    }
+
+    delete actual;
 }

@@ -34,6 +34,9 @@ public:
     Usuarios& operator=(const Usuarios& u);
     ~Usuarios();
     int getContadorReproducciones() const { return contadorReproducciones; }
+    ListaFavoritos& getListaFavoritos();
+    const ListaFavoritos* getListaSeguida() const;
+    bool seguirListaFavoritos(ListaFavoritos* listaOtra);
 
     bool debeMostrarPublicidad() const {
         return (tipoMembresia == TIPO_STANDARD &&
@@ -47,8 +50,6 @@ public:
     std::string getCiudad() const { return ciudad; }
     std::string getPais() const { return pais; }
     std::string getFechaInscripcion() const { return fechaInscripcion; }
-
-    ListaFavoritos& getListaFavoritos() { return listaFavoritos; }
     const ListaFavoritos& getListaFavoritos() const { return listaFavoritos; }
 
     // Setters

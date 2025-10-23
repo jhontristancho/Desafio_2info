@@ -191,6 +191,30 @@ bool Usuarios::cargarFavoritosDesdeString(const std::string& idsCadena) {
 
     return agregadas > 0;
 }
+ListaFavoritos& Usuarios::getListaFavoritos() {
+    return listaFavoritos;
+}
+const ListaFavoritos* Usuarios::getListaSeguida() const {
+    return listaFavoritos.obtenerListaExponer();
+}
+bool Usuarios::seguirListaFavoritos(ListaFavoritos* listaOtra) {
+    if (this->tipoMembresia != TIPO_PREMIUM) {
+        cout << "[ERROR] Solo los usuarios Premium pueden seguir listas." << endl;
+        return false;
+    }
+    if (!listaOtra) {
+        cout << "[ERROR] Lista de favoritos inválida." << endl;
+        return false;
+    }
+    if (&this->listaFavoritos == listaOtra) {
+        cout << "[ERROR] No puedes seguir tu propia lista." << endl;
+        return false;
+    }
+
+    this->listaFavoritos.setListaSeguida(listaOtra);
+    cout << "[INFO] " << nickname << " ahora sigue la lista de otro usuario." << endl;
+    return true;
+}
 void Usuarios::mostrarInfo(const UdeATunesDataset* dataset) const {
     cout << "--- Perfil de Usuario ---\n";
     cout << "Reproducciones: " << contadorReproducciones << "\n";

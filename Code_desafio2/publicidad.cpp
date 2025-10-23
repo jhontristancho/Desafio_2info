@@ -16,9 +16,9 @@ Publicidad::Publicidad(int id, const char* mensaje, char categoria)
     if (longitud > 500) {
         throw "Error: El mensaje no puede exceder 500 caracteres";
     }
-
     this->mensaje = new char[longitud + 1];
-    strcpy(this->mensaje, mensaje);
+    strncpy(this->mensaje, mensaje, strlen(mensaje));
+    this->mensaje[strlen(mensaje)] = '\0';
 
     // ✅ CALCULAR PRIORIDAD BASADA EN CATEGORÍA
     if (categoria == 'A') prioridad = 3;
@@ -32,7 +32,22 @@ Publicidad::Publicidad(const Publicidad &p)
     : id(p.id), categoria(p.categoria), prioridad(p.prioridad) {
 
     mensaje = new char[strlen(p.mensaje) + 1];
-    strcpy(mensaje, p.mensaje);
+    strncpy(this->mensaje, mensaje, strlen(mensaje));
+    this->mensaje[strlen(mensaje)] = '\0';
+}
+Publicidad& Publicidad::operator=(const Publicidad& otra) {
+    if (this != &otra) {
+        id = otra.id;
+        categoria = otra.categoria;
+        prioridad = otra.prioridad;
+
+        delete[] mensaje;
+        int longitud = strlen(otra.mensaje);
+        mensaje = new char[longitud + 1];
+        strncpy(mensaje, otra.mensaje, longitud);
+        mensaje[longitud] = '\0';
+    }
+    return *this;
 }
 
 // Destructor
@@ -62,7 +77,8 @@ void Publicidad::setMensaje(const char* m) {
 
     delete[] mensaje;
     mensaje = new char[longitud + 1];
-    strcpy(mensaje, m);
+    strncpy(this->mensaje, mensaje, strlen(mensaje));
+    this->mensaje[strlen(mensaje)] = '\0';
 }
 
 void Publicidad::setCategoria(char c) {
