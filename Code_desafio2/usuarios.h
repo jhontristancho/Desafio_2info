@@ -36,7 +36,7 @@ public:
     int getContadorReproducciones() const { return contadorReproducciones; }
     ListaFavoritos& getListaFavoritos();
     const ListaFavoritos* getListaSeguida() const;
-    bool seguirListaFavoritos(ListaFavoritos* listaOtra);
+    bool seguirListaFavoritos(const ListaFavoritos* listaOtra);
 
     bool debeMostrarPublicidad() const {
         return (tipoMembresia == TIPO_STANDARD &&
