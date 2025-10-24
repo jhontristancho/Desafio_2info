@@ -197,24 +197,34 @@ ListaFavoritos& Usuarios::getListaFavoritos() {
 const ListaFavoritos* Usuarios::getListaSeguida() const {
     return listaFavoritos.obtenerListaExponer();
 }
-bool Usuarios::seguirListaFavoritos(ListaFavoritos* listaOtra) {
+bool Usuarios::seguirListaFavoritos(const ListaFavoritos* listaOtra) {
     if (this->tipoMembresia != TIPO_PREMIUM) {
         cout << "[ERROR] Solo los usuarios Premium pueden seguir listas." << endl;
         return false;
     }
+
     if (!listaOtra) {
-        cout << "[ERROR] Lista de favoritos inválida." << endl;
+        cout << "⚠️ La lista a seguir no existe.\n";
         return false;
     }
-    if (&this->listaFavoritos == listaOtra) {
+
+    // Evitar seguir la propia lista
+    if (listaOtra == &this->listaFavoritos) {
         cout << "[ERROR] No puedes seguir tu propia lista." << endl;
         return false;
     }
 
-    this->listaFavoritos.setListaSeguida(listaOtra);
-    cout << "[INFO] " << nickname << " ahora sigue la lista de otro usuario." << endl;
+    // ✅ Combinar ambas listas (sin duplicar canciones)
+    ListaFavoritos nuevaLista = this->listaFavoritos + *listaOtra;
+    this->listaFavoritos = nuevaLista;
+
+    cout << "👥 Has seguido correctamente la lista. "
+         << "Ahora tu lista contiene " << this->listaFavoritos.getNumCanciones()
+         << " canciones (incluidas las de la lista seguida)." << endl;
+
     return true;
 }
+
 void Usuarios::mostrarInfo(const UdeATunesDataset* dataset) const {
     cout << "--- Perfil de Usuario ---\n";
     cout << "Reproducciones: " << contadorReproducciones << "\n";
