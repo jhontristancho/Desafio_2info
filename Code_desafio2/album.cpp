@@ -15,7 +15,7 @@ void Album::resizeCanciones() {
     capacidadCanciones = nuevaCapacidad;
 }
 Album::Album()//constrctor de defecto
-    : idAlbum(0), nombre(""), selloDisquero(""), fechaLanzamiento(""),
+    : idAlbum(""), nombre(""), selloDisquero(""), fechaLanzamiento(""),
     duracionTotal(0.0f), puntuacion(0), portadaRuta(""),
     generos(nullptr), numGeneros(0),
     canciones(nullptr), numCanciones(0), capacidadCanciones(ALBUM_CAPACIDAD_INICIAL),
@@ -24,7 +24,7 @@ Album::Album()//constrctor de defecto
     canciones = new Cancion*[capacidadCanciones];
 }
 //este es el que se va usar
-Album::Album(int id, const std::string& nom, const std::string& fecha, const std::string& port)
+Album::Album(string id, const std::string& nom, const std::string& fecha, const std::string& port)
     : idAlbum(id), nombre(nom),
     selloDisquero("ninguno"), fechaLanzamiento(fecha),
     duracionTotal(0.0f), puntuacion(0), portadaRuta(port),

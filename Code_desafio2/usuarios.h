@@ -64,7 +64,7 @@ public:
 
     // ✅ CAMBIAR: int* a std::string*
     std::string* getCancionAnterior();
-
+    bool dejarDeSeguir();
     bool cargarFavoritosDesdeString(const std::string& idsCadena);
     bool cargarFavoritosDesdeArchivo(const std::string& rutaArchivo);
     void mostrarInfo(const UdeATunesDataset* dataset) const;

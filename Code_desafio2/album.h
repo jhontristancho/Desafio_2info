@@ -5,7 +5,7 @@
 class Artista;
 class Album {
 private:
-    int idAlbum;
+    std::string idAlbum;
     std::string nombre;
     std::string selloDisquero;
     std::string fechaLanzamiento;
@@ -22,14 +22,14 @@ private:
     void resizeCanciones();
 public:
     Album();
-    Album(int id, const std::string& nom, const std::string& fecha, const std::string& port);//este constructor es el que nos muestra la version que nos pide el profesor
+    Album(std::string id, const std::string& nom, const std::string& fecha, const std::string& port);//este constructor es el que nos muestra la version que nos pide el profesor
     ~Album();
     Album(const Album& otra);
     Album& operator=(const Album& otra);
 bool agregarCancion(Cancion* c);
     void setGeneros(const std::string* gens, int num);//est0 es para el futuro
     void mostrarInfo() const;
-    int getIdAlbum() const { return idAlbum; }
+    std::string getIdAlbum() const { return idAlbum; }
     float getDuracionTotal() const { return duracionTotal; }
     Cancion* buscarCancion(const std::string& id) const;
     void setArtista(Artista* art) { artista = art; }

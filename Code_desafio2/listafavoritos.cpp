@@ -92,7 +92,7 @@ void ListaFavoritos::redimensionar(int nuevaCapacidad) {
 void ListaFavoritos::mostrarLista() const {
     std::cout << "LISTA DE FAVORITOS (" << numCanciones << " canciones)" << std::endl;
     for (int i = 0; i < numCanciones; i++) {
-        std::cout << "   " << (i + 1) << ". ID: " << cancionesIds[i] << std::endl;
+        std::cout << "nombre: "<<(i + 1) << ". ID: " << cancionesIds[i] << std::endl;
     }
     if (numCanciones == 0) {
         std::cout << "   (Lista vacia)" << std::endl;
@@ -101,49 +101,48 @@ void ListaFavoritos::mostrarLista() const {
 
 // Actualizar mostrarLista con dataset
 void ListaFavoritos::mostrarLista(const UdeATunesDataset* dataset) const {
-    const ListaFavoritos* listaActual = obtenerListaExponer();
+    const ListaFavoritos* listaPropia = this;
+    const ListaFavoritos* listaSeg = listaSeguida;
 
-    cout << "LISTA DE FAVORITOS (" << listaActual->getNumCanciones() << " canciones)";
-    if (listaActual != this) {
-        cout << " (DELEGADA - Accediendo a la lista de otro usuario)";
+    // Combinar si sigue a alguien
+    ListaFavoritos listaFinal = *listaPropia;
+    if (listaSeg) {
+        listaFinal = listaFinal + *listaSeg;
+        cout << "LISTA DE FAVORITOS COMBINADA ("
+             << listaFinal.getNumCanciones() << " canciones, incluyendo seguidas)"
+             << endl;
+    } else {
+        cout << "LISTA DE FAVORITOS (" << listaFinal.getNumCanciones() << " canciones)"
+             << endl;
     }
-    cout << endl;
 
-    if (listaActual->getNumCanciones() == 0) {
-        cout << "    (Lista vacia)" << endl;
+    if (listaFinal.getNumCanciones() == 0) {
+        cout << "    (Lista vacía)" << endl;
         return;
     }
 
-    const std::string* canciones = listaActual->getCancionesIds();
+    const std::string* canciones = listaFinal.getCancionesIds();
 
-    for (int i = 0; i < listaActual->getNumCanciones(); ++i) {
+    for (int i = 0; i < listaFinal.getNumCanciones(); ++i) {
         std::string idCancion = canciones[i];
+        std::string nombreCancion = "Desconocida";
 
-        // ✅ BUSCAR LA CANCIÓN EN EL DATASET PARA OBTENER SU NOMBRE
-        Cancion* cancion = nullptr;
         if (dataset) {
-            cancion = dataset->buscarCancion(idCancion);
-        }
-
-        cout << "    " << (i + 1) << ". ";
-        if (cancion) {
-            // ✅ MOSTRAR NOMBRE DE LA CANCIÓN Y ARTISTA
-            cout << cancion->getNombre();
-
-            // Mostrar artista si está disponible
-            if (cancion->getArtista()) {
-                cout << " - " << cancion->getArtista()->getNombre();
+            std::string linea = dataset->buscarLineaPorID(
+                dataset->getLineasCanciones(),
+                dataset->getNumLineasCanciones(),
+                idCancion,
+                0
+                );
+            if (!linea.empty()) {
+                nombreCancion = dataset->obtenerCampo(linea, 1);
             }
-
-            cout << " (ID: " << idCancion << ")";
-        } else {
-            // Si no se encuentra la canción, mostrar solo el ID
-            cout << "Canción no encontrada (ID: " << idCancion << ")";
         }
-        cout << endl;
+
+        cout << "    " << (i + 1) << ". " << nombreCancion
+             << " (ID: " << idCancion << ")" << endl;
     }
 }
-// Actualizar operador +
 ListaFavoritos ListaFavoritos::operator+(const ListaFavoritos &otra) const {
     ListaFavoritos nuevaLista(this->numCanciones + otra.numCanciones);
 

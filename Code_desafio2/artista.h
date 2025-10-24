@@ -6,7 +6,7 @@
 
 class Artista {
 private:
-    int idArtista;
+    std::string idArtista;
     std::string nombre;
     int edad;
     std::string paisOrigen;
@@ -18,13 +18,13 @@ private:
     void resizeAlbumes();
 public:
     Artista();
-    Artista(int id, const std::string& nom);
+    Artista(std::string id, const std::string& nom);
     ~Artista();
     Artista(const Artista& otra);
     Artista& operator=(const Artista& otra);
 bool agregarAlbum(Album* a);
-    Album* buscarAlbum(int id) const;
-    int getIdArtista() const { return idArtista; }
+    Album* buscarAlbum(std::string id) const;
+    std::string getIdArtista() const { return idArtista; }
     const std::string& getNombre() const { return nombre; }
     int getNumAlbumes() const { return numAlbumes; }
     Album* getAlbumAt(int idx) const {

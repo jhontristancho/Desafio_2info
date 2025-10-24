@@ -3,13 +3,18 @@
 using namespace std;
 
 int main() {
-    UdeATunesDataset app;
-
-    if (!app.cargarDatos()) {
-        cout << "❌ Error al cargar los datos del sistema.\n";
-        return 1;
+    UdeATunesDataset dataset;
+    if (!dataset.cargarDatos()) {
+        cerr << "Error cargando datos." << endl;
+        // seguir o salir según quieras
     }
 
-    app.iniciarSesionYReproducir();
+    // Inicia sesión y reproducción (tu método ya maneja la interacción)
+    dataset.iniciarSesionYReproducir();
+
+    // Al cerrar, guardar listas de favoritos
+    dataset.guardarListasDeFavoritos("listadefavoritos.txt");
+
+    cout << "Saliendo. Guardado completado." << endl;
     return 0;
 }

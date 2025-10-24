@@ -29,13 +29,13 @@ void Artista::resizeAlbumes() {
 //  Constructores y Destructor
 // =====================================================
 Artista::Artista()
-    : idArtista(0), nombre(""), edad(0), paisOrigen("N/A"),
+    : idArtista(""), nombre(""), edad(0), paisOrigen("N/A"),
     seguidores(0), posicionTendencia(999999),
     albumes(nullptr), numAlbumes(0), capacidadAlbumes(ARTISTA_CAPACIDAD_INICIAL) {
     albumes = new Album*[capacidadAlbumes];
 }
 
-Artista::Artista(int id, const std::string& nom)
+Artista::Artista(string id, const std::string& nom)
     : idArtista(id), nombre(nom), edad(0), paisOrigen("Desconocido"),
     seguidores(0), posicionTendencia(999999),
     albumes(nullptr), numAlbumes(0), capacidadAlbumes(ARTISTA_CAPACIDAD_INICIAL) {
@@ -108,7 +108,7 @@ bool Artista::agregarAlbum(Album* a) {
 // =====================================================
 //  Buscar álbum por ID
 // =====================================================
-Album* Artista::buscarAlbum(int id) const {
+Album* Artista::buscarAlbum(string id) const {
     for (int i = 0; i < numAlbumes; ++i) {
         if (albumes[i] && albumes[i]->getIdAlbum() == id)
             return albumes[i];
