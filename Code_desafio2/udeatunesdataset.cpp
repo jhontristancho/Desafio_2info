@@ -5,31 +5,40 @@
 #include <cstdlib>
 #include <thread>
 #include <chrono>
+#include <random>
 using namespace std::chrono_literals;
 using namespace std;
 const int GROW_FACTOR = 2;
 const int DATASET_CAPACIDAD_INICIAL = 10;
+#include <ctime>
 UdeATunesDataset::UdeATunesDataset()
     : artistas(new Artista[DATASET_CAPACIDAD_INICIAL]),
     numArtistas(0),
-    capacidadArtistas(DATASET_CAPACIDAD_INICIAL),publicidades(new Publicidad[10]),  // ✅ INICIALIZAR
-    numPublicidades(0), capacidadPublicidades(10),
+    capacidadArtistas(DATASET_CAPACIDAD_INICIAL),
+    publicidades(new Publicidad[10]),
+    numPublicidades(0),
+    capacidadPublicidades(10),
     ultimaPublicidadMostrada(-1),
     colaboradores(new Colaborador[DATASET_CAPACIDAD_INICIAL]),
     numColaboradores(0),
     capacidadColaboradores(DATASET_CAPACIDAD_INICIAL),
-    lineasAlbumes(nullptr), numLineasAlbumes(0), capacidadLineasAlbumes(0),
-    lineasCanciones(nullptr), numLineasCanciones(0), capacidadLineasCanciones(0),
-    lineasCreditos(nullptr), numLineasCreditos(0), capacidadLineasCreditos(0),
+    lineasAlbumes(nullptr),
+    numLineasAlbumes(0),
+    capacidadLineasAlbumes(0),
+    lineasCanciones(nullptr),
+    numLineasCanciones(0),
+    capacidadLineasCanciones(0),
+    lineasCreditos(nullptr),
+    numLineasCreditos(0),
+    capacidadLineasCreditos(0),
     idsColaboradores(new long[DATASET_CAPACIDAD_INICIAL]),
-    // --- INICIO DE LA CORRECCIÓN ---
-    usuarios(new Usuarios[DATASET_CAPACIDAD_INICIAL]), // Asigna memoria
-    numUsuarios(0),                                  // Inicia en 0
-    capacidadUsuarios(DATASET_CAPACIDAD_INICIAL)     // Define capacidad
-// --- FIN DE LA CORRECCIÓN ---
+    usuarios(new Usuarios[DATASET_CAPACIDAD_INICIAL]),
+    numUsuarios(0),
+    capacidadUsuarios(DATASET_CAPACIDAD_INICIAL)
 {
-    // El constructor ahora esta completo
+    srand(static_cast<unsigned>(time(nullptr)));  // ✅ Inicializa la semilla solo una vez
 }
+
 UdeATunesDataset::~UdeATunesDataset() {
     delete[] artistas;
     delete[] colaboradores;
@@ -100,6 +109,16 @@ string UdeATunesDataset::obtenerCampo(const string& linea, int campo) const {
 }
 string UdeATunesDataset::buscarLineaPorID(const string* lineas, int numLineas, const string& idBuscado, int campoID) const {
     for (int i = 0; i < numLineas; ++i) {
+        for (int i = 0; i < numLineas; ++i) {
+            std::string idActual = obtenerCampo(lineas[i], campoID);
+            if (idBuscado == idActual) {
+                cout << "[DEBUG] Coincide con ID: '" << idActual << "'" << endl;
+                return lineas[i];
+            } else {
+                cout << "[DEBUG] Comparando '" << idBuscado << "' con '" << idActual << "'" << endl;
+            }
+        }
+
         if (obtenerCampo(lineas[i], campoID) == idBuscado) {
             return lineas[i];
         }
@@ -113,7 +132,7 @@ bool UdeATunesDataset::cargarArtistas() {
     for (int i = 0; i < numArtistas; ++i) {
         string linea = lineasArtistas[i];
         string idStr = obtenerCampo(linea, 0);
-        long id = stol(idStr);
+        string id = idStr;
         string nombre = obtenerCampo(linea, 1);
         cout << " artista prueba:  " << id << " " << idStr << " nombre: " << nombre << endl;
         artistas[i] = Artista(id, nombre);
@@ -230,8 +249,8 @@ bool UdeATunesDataset::procesarAlbum(const string& lineaAlbum, int indice) {
     }
     try {
         string idArtistaStr = idAlbumCompleto.substr(0, 5);//los primeros 5 son del artista
-        long idArtista = stol(idArtistaStr);
-        long idAlbum = stol(idAlbumCompleto);
+        string idArtista = idArtistaStr;
+        string idAlbum = idAlbumCompleto;
         cout << "el id del artista es: " << idArtista <<"y todo el id que recibio fue" << idArtistaStr << endl;
         Artista* artista = getArtista(idArtista);
         if (!artista) {
@@ -385,7 +404,7 @@ bool UdeATunesDataset::cargarUsuarios() {
 }
 
 // metodo para la busqueda
-Artista* UdeATunesDataset::getArtista(long id) const {
+Artista* UdeATunesDataset::getArtista(string id) const {
     cout << " buscar el artista: " << id << endl;
     for (int i = 0; i < numArtistas; ++i) {
         cout << " comparamos:  " << artistas[i].getIdArtista() << " - " << artistas[i].getNombre() << endl;
@@ -797,52 +816,24 @@ Cancion* UdeATunesDataset::reproducirCancionAleatoria(Usuarios* usuario) {
         return nullptr;
     }
 
-    int indiceCancion = rand() % numLineasCanciones;
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, numLineasCanciones - 1);
+
+    int indiceCancion = distrib(gen);  // ✅ Aleatorio real
     string lineaCancion = lineasCanciones[indiceCancion];
 
     string idCancion = obtenerCampo(lineaCancion, 0);
     string nombreCancion = obtenerCampo(lineaCancion, 1);
     string duracionStr = obtenerCampo(lineaCancion, 2);
     string ruta128 = obtenerCampo(lineaCancion, 3);
-    string idAlbumCompleto = idCancion.substr(0, 7);
-    string idArtistaStr = idCancion.substr(0, 5);
 
-    Artista* artista = getArtista(stol(idArtistaStr));
-    string nombreArtista = artista ? artista->getNombre() : "Desconocido";
-
-    Album* albumEncontrado = nullptr;
-    string rutaPortada = "Desconocida";
-    if (artista) {
-        for (int j = 0; j < artista->getNumAlbumes(); ++j) {
-            Album* a = artista->getAlbumAt(j);
-            if (a && to_string(a->getIdAlbum()) == idAlbumCompleto) {
-                albumEncontrado = a;
-                rutaPortada = a->getPortadaRuta();
-                break;
-            }
-        }
-    }
-
-    if (usuario->getTipoMembresia() == 0) {
-        Publicidad* pub = obtenerPublicidadAleatoria();
-        if (pub) {
-            cout << "\n📢 [PUBLICIDAD] " << pub->getMensaje()
-                << " (" << pub->getCategoria() << ")" << endl;
-        }
-    }
-
-    cout << "\n🎶 Reproduciendo canción:\n";
-    cout << "--------------------------------------\n";
-    cout << "Artista: " << nombreArtista << endl;
-    cout << "Álbum: " << (albumEncontrado ? albumEncontrado->getNombre() : "Desconocido") << endl;
-    cout << "Ruta portada: " << rutaPortada << endl;
-    cout << "Canción: " << nombreCancion << endl;
-    cout << "Ruta archivo: " << ruta128 << endl;
-    cout << "Duración: " << duracionStr << " minutos\n";
-    cout << "--------------------------------------\n";
+    mostrarReproduccion(idCancion, usuario, true);
 
     return new Cancion(idCancion, nombreCancion, parseDuracion(duracionStr), ruta128, "");
 }
+
+
 void UdeATunesDataset::reproducirListaFavoritos(Usuarios* usuario, bool aleatoria) {
     const ListaFavoritos* lista = usuario->getListaSeguida();
     if (!lista || lista->getNumCanciones() == 0) {
@@ -852,41 +843,51 @@ void UdeATunesDataset::reproducirListaFavoritos(Usuarios* usuario, bool aleatori
 
     cout << "\n🎧 Reproduciendo lista de favoritos (" << lista->getNumCanciones() << " canciones)\n";
 
-    int M = 6;
-    string historial[6];
-    int totalHistorial = 0;
-    bool reproduciendo = true;
     int indiceActual = aleatoria ? rand() % lista->getNumCanciones() : 0;
+    bool reproduciendo = true;
+
+    // Reemplazo de vector por array dinámico
+    string* historial = new string[lista->getNumCanciones()];
+    int historialSize = 0;
+    int historialCapacity = lista->getNumCanciones();
 
     while (reproduciendo) {
         string id = lista->getCancionesIds()[indiceActual];
-        Cancion* c = buscarCancion(id);
-        if (c) {
-            cout << "\n▶️ Canción actual (" << (indiceActual + 1) << "/" << lista->getNumCanciones() << "):\n";
-            cout << "   " << c->getNombre() << " (ID: " << id << ")\n";
-            std::this_thread::sleep_for(std::chrono::seconds(3));
-        }
 
-        cout << "\nOpciones: 1.Siguiente  2.Previo  3.Detener\n> ";
+        mostrarReproduccion(id, usuario, false);
+
+        cout << "\nOpciones: 1.Siguiente  2.Anterior  3.Detener\n> ";
         int op;
         cin >> op;
 
         if (op == 1) {
-            if (totalHistorial < M) historial[totalHistorial++] = id;
-            indiceActual = aleatoria ? rand() % lista->getNumCanciones() : (indiceActual + 1) % lista->getNumCanciones();
-        } else if (op == 2) {
-            if (totalHistorial == 0)
-                cout << "⚠️ No hay canciones previas.\n";
-            else {
-                indiceActual = rand() % lista->getNumCanciones();
-                totalHistorial--;
+            // push_back equivalente
+            if (historialSize < historialCapacity) {
+                historial[historialSize] = id;
+                historialSize++;
             }
-        } else {
+            indiceActual = aleatoria ? rand() % lista->getNumCanciones() : (indiceActual + 1) % lista->getNumCanciones();
+        }
+        else if (op == 2) {
+            // empty() y pop_back() equivalentes
+            if (historialSize == 0) {
+                cout << "⚠️ No hay canciones previas.\n";
+            } else {
+                // back() equivalente
+                id = historial[historialSize - 1];
+                // pop_back() equivalente
+                historialSize--;
+                mostrarReproduccion(id, usuario, false);
+            }
+        }
+        else {
             reproduciendo = false;
             cout << "🛑 Fin de reproducción.\n";
         }
-        delete c;
     }
+
+    // Liberar memoria del array dinámico
+    delete[] historial;
 }
 
 void UdeATunesDataset::menuFavoritosPremium(Usuarios* usuario) {
@@ -960,6 +961,82 @@ void UdeATunesDataset::menuFavoritosPremium(Usuarios* usuario) {
         }
     }
 }
+// Centraliza la impresión cuando se inicia la reproducción de una canción
+void UdeATunesDataset::mostrarReproduccion(const std::string& idCancion, Usuarios* usuario, bool mostrarPublicidad) {
+    // obtener linea y datos
+    std::string lineaCancion = buscarLineaPorID(lineasCanciones, numLineasCanciones, idCancion, 0);
+    if (lineaCancion.empty()) {
+        cout << "❌ Canción no encontrada: " << idCancion << endl;
+        return;
+    }
+    std::string nombreCancion = obtenerCampo(lineaCancion, 1);
+    std::string duracionStr = obtenerCampo(lineaCancion, 2);
+    std::string ruta128 = obtenerCampo(lineaCancion, 3);
+    // album/artista
+    std::string idAlbumCompleto = idCancion.substr(0,7);
+    std::string idArtistaStr = idCancion.substr(0,5);
+    Artista* artista = getArtista(idArtistaStr);
+    std::string nombreArtista = (artista ? artista->getNombre() : "Desconocido");
+    Album* albumEncontrado = nullptr;
+    std::string nombreAlbum = "Álbum desconocido";
+    std::string rutaAlbum = "Ruta portada desconocida";
+    if (artista) {
+        for (int j = 0; j < artista->getNumAlbumes(); ++j) {
+            Album* a = artista->getAlbumAt(j);
+            std::string albumIdPadded = (a->getIdAlbum());
+            if (albumIdPadded == idAlbumCompleto) {
+                albumEncontrado = a;
+                break;
+            }
+        }
+    }
+    if (albumEncontrado) {
+        nombreAlbum = albumEncontrado->getNombre();
+        rutaAlbum = albumEncontrado->getPortadaRuta();
+    }
+
+    // mostrar publicidad si aplica
+    if (mostrarPublicidad && usuario && usuario->debeMostrarPublicidad()) {
+        Publicidad* pub = obtenerPublicidadAleatoria();
+        if (pub) {
+            cout << "\n📢 [MENSAJE PUBLICITARIO]" << endl;
+            cout << "Categoría: " << pub->getCategoria() << endl;
+            cout << pub->getMensaje() << endl;
+        }
+    }
+
+    // mostrar detalles de reproducción (formato idéntico cada vez)
+    cout << "\n🎵 Reproduciendo canción:\n";
+    cout << "Artista: " << nombreArtista << endl;
+    cout << "Álbum: " << nombreAlbum << endl;
+    cout << "Ruta portada: " << rutaAlbum << endl;
+    cout << "Canción: " << nombreCancion << endl;
+    cout << "Ruta archivo: " << ruta128 << endl;
+    cout << "Duración: " << duracionStr << " minutos" << endl;
+    cout << "--------------------------------------" << endl;
+}
+bool UdeATunesDataset::guardarListasDeFavoritos(const std::string& rutaArchivo) const {
+    std::fstream fs(rutaArchivo, std::ios::out);
+    if (!fs.is_open()) {
+        std::cerr << "[ERROR] No se pudo abrir para escribir: " << rutaArchivo << std::endl;
+        return false;
+    }
+    for (int i = 0; i < numUsuarios; ++i) {
+        const Usuarios& u = usuarios[i];
+        const ListaFavoritos& lf = u.getListaFavoritos(); // necesitas exponer getListaFavoritos() en Usuarios
+        // construir línea: nickname:id1,id2,...
+        fs << u.getNickname() << ":";
+        const std::string* ids = lf.getCancionesIds(); // añade accessor en ListaFavoritos
+        for (int j = 0; j < lf.getNumCanciones(); ++j) {
+            if (j > 0) fs << ",";
+            fs << ids[j];
+        }
+        fs << "\n";
+    }
+    fs.close();
+    std::cout << "[INFO] Listas de favoritos guardadas en " << rutaArchivo << std::endl;
+    return true;
+}
 void UdeATunesDataset::iniciarSesionYReproducir() {
     cout << "\n========== BIENVENIDO A UDEATUNES ==========\n";
     cout << "Ingrese su nickname para iniciar sesión: ";
@@ -985,13 +1062,33 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
     // === USUARIO ESTÁNDAR ===
     if (usuario->getTipoMembresia() == 0) {
         cout << "\n🎧 Reproducción automática (máx 5 canciones)...\n";
+
         const int K = 5;
+        int contadorPublicidad = 0; // ✅ Controla cada 2 canciones
+        int ultimaPublicidadID = -1; // ✅ Evita repetición consecutiva
+
         for (int i = 0; i < K; ++i) {
+            // ✅ Mostrar publicidad solo cada 2 canciones
+            if (contadorPublicidad == 2) {
+                contadorPublicidad = 0;
+
+                Publicidad* pub = obtenerPublicidadAleatoria();
+                if (pub && pub->getId() != ultimaPublicidadID) {
+                    cout << "\n📢 [MENSAJE PUBLICITARIO]" << endl;
+                    cout << "Categoría: " << pub->getCategoria() << endl;
+                    cout << pub->getMensaje() << endl;
+                    ultimaPublicidadID = pub->getId();
+                }
+            }
+
             Cancion* c = reproducirCancionAleatoria(usuario);
             if (!c) break;
+
+            contadorPublicidad++; // ✅ Incrementamos al reproducir canción
             std::this_thread::sleep_for(std::chrono::seconds(3));
             delete c;
         }
+
         cout << "\n🛑 Fin de la reproducción (5 canciones).\n";
         return;
     }
@@ -1017,13 +1114,19 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
         cin >> opcion;
 
         switch (opcion) {
-        case 1: // siguiente
-            if (actual && totalHistorial < 4) historial[totalHistorial++] = actual->getIdCompleto();
+        case 1: {
+            // ✅ Guardar la canción actual ANTES de avanzar
+            if (actual && totalHistorial < 4)
+                historial[totalHistorial++] = actual->getIdCompleto();
+
             delete actual;
             actual = reproducirCancionAleatoria(usuario);
             std::this_thread::sleep_for(std::chrono::seconds(3));
             break;
-        case 2: // previa
+        }
+
+        case 2: {
+            // ✅ Reproducir la canción anterior REAL
             if (totalHistorial == 0) {
                 cout << "⚠️ No hay canciones previas.\n";
             } else {
@@ -1031,23 +1134,33 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
                 delete actual;
                 actual = buscarCancion(idAnterior);
                 if (actual) {
-                    cout << "\n⏪ Reproduciendo canción anterior: " << idAnterior << endl;
+                    mostrarReproduccion(idAnterior, usuario, false);
                     std::this_thread::sleep_for(std::chrono::seconds(3));
+                } else {
+                    cout << "❌ No se pudo encontrar la canción anterior.\n";
                 }
             }
             break;
-        case 3: // repetir
+        }
+
+        case 3:
             repetir = !repetir;
             cout << (repetir ? "🔁 Repetir activado.\n" : "⏹️ Repetir desactivado.\n");
-            if (repetir && actual) std::this_thread::sleep_for(std::chrono::seconds(3));
+            if (repetir && actual) {
+                mostrarReproduccion(actual->getIdCompleto(), usuario, false);
+                std::this_thread::sleep_for(std::chrono::seconds(3));
+            }
             break;
-        case 4: // favoritos
+
+        case 4:
             menuFavoritosPremium(usuario);
             break;
+
         case 5:
             reproduciendo = false;
             cout << "🛑 Reproducción detenida.\n";
             break;
+
         default:
             cout << "❌ Opción inválida.\n";
         }

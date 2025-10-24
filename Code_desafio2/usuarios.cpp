@@ -218,6 +218,27 @@ bool Usuarios::seguirListaFavoritos(ListaFavoritos* listaOtra) {
 void Usuarios::mostrarInfo(const UdeATunesDataset* dataset) const {
     cout << "--- Perfil de Usuario ---\n";
     cout << "Reproducciones: " << contadorReproducciones << "\n";
-    listaFavoritos.mostrarLista(dataset);
+    cout << "Mi lista de favoritos:\n";
+    listaFavoritos.mostrarLista(dataset); // muestra delegada si listaSeguida está activa
+    // Mostrar explícitamente la lista propia aunque siga otra
+    cout << "\n(Mostrando también mi lista propia si sigo otra):\n";
+    // Forzar mostrar la lista propia sin delegación:
+    ListaFavoritos copia = listaFavoritos; // usa operator= o constructor copia
+    copia.setListaSeguida(nullptr); // asegurar que muestra su propia lista
+    copia.mostrarLista(dataset);
+
+    if (listaFavoritos.getListaSeguida() != nullptr) {
+        cout << "\nActualmente siguiendo la lista de otro usuario. Para dejar de seguir use la opción correspondiente.\n";
+    }
+
     cout << "-------------------------\n";
+}
+bool Usuarios::dejarDeSeguir() {
+    if (listaFavoritos.getListaSeguida() == nullptr) {
+        cout << "[INFO] No estás siguiendo ninguna lista." << endl;
+        return false;
+    }
+    listaFavoritos.setListaSeguida(nullptr);
+    cout << "[INFO] Has dejado de seguir la lista." << endl;
+    return true;
 }
