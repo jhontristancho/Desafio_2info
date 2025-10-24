@@ -86,6 +86,7 @@ private:
     Colaborador* encontrarColaborador(const std::string& idColaborador) const;
 
 public:
+    static long* iteraciones;
     // ==============================
     // 🔹 Constructor y destructor
     // ==============================

@@ -1,18 +1,22 @@
 #include "Album.h"
 #include <iostream>
 #include <string>
+#include <udeatunesdataset.h>
 using namespace std;
 const int ALBUM_CAPACIDAD_INICIAL = 10;
 const int GROW_FACTOR = 2;
 void Album::resizeCanciones() {
+    int contador=0;
     int nuevaCapacidad = capacidadCanciones * GROW_FACTOR;
     Cancion** nuevoArray = new Cancion*[nuevaCapacidad];
     for (int i = 0; i < numCanciones; ++i) {
+        ++contador;
         nuevoArray[i] = canciones[i];
     }
     delete[] canciones;
     canciones = nuevoArray;
     capacidadCanciones = nuevaCapacidad;
+    *UdeATunesDataset::iteraciones += contador;
 }
 Album::Album()//constrctor de defecto
     : idAlbum(""), nombre(""), selloDisquero(""), fechaLanzamiento(""),
@@ -66,10 +70,12 @@ Album::Album(const Album& otra)
 }
 
 Album& Album::operator=(const Album& otra) {//asignarle pa que copie
+    int contador=0;
     if (this == &otra) {
         return *this;
     }
     for (int i = 0; i < numCanciones; ++i) {
+        ++contador;
         delete canciones[i];//liberamos para no ocupar doble
     }
     delete[] canciones;
@@ -88,6 +94,7 @@ nombre = otra.nombre;
     if (numGeneros > 0) {
         generos = new std::string[numGeneros];
         for (int i = 0; i < numGeneros; ++i) {
+            ++contador;
             generos[i] = otra.generos[i];
         }
     } else {
@@ -95,29 +102,35 @@ nombre = otra.nombre;
     }
     canciones = new Cancion*[capacidadCanciones];
     for (int i = 0; i < numCanciones; ++i) {
+        ++contador;
         // Crea un nuevo objeto Cancion
         canciones[i] = new Cancion(*(otra.canciones[i]));
         canciones[i]->setAlbum(this);
     }
+    *UdeATunesDataset::iteraciones += contador;
     return *this;
 }
 bool Album::agregarCancion(Cancion* c) {
+    int contador=0;
     if (!c) return false;
 
     // evitar duplicados
-    for (int i = 0; i < numCanciones; ++i)
+    for (int i = 0; i < numCanciones; ++i){
+        ++contador;
         if (canciones[i] == c) return false;
-
+    }
     if (numCanciones >= capacidadCanciones)
         resizeCanciones();
 
     canciones[numCanciones++] = c;
     duracionTotal += c->getDuracion();
+    *UdeATunesDataset::iteraciones += contador;
     return true;
 }
 
 
 void Album::setGeneros(const std::string* gens, int num) {//pa el futuro o si se implementa
+
     delete[] generos;
     generos = nullptr;
     if (num > 0 && gens) {
@@ -129,6 +142,7 @@ void Album::setGeneros(const std::string* gens, int num) {//pa el futuro o si se
 }
 
 void Album::mostrarInfo() const {
+    int contador=0;
     cout << "album" << endl;
     cout << "id: " << idAlbum << "nombre: " << nombre << endl;//el id del album igual, pero por ahora dejemoslo y si no lo quitamos
     //cout << "Sello: " << selloDisquero << " | Puntuacion: " << puntuacion << endl;//esto lo podemos implementar si se nos da, pero por lo que hablamos con el profesor no se va a dar por ahora
@@ -136,6 +150,7 @@ void Album::mostrarInfo() const {
     cout << "Canciones (" << numCanciones << "):" << endl;
     if (numCanciones > 0) {
         for (int i = 0; i < numCanciones; ++i) {
+            ++contador;
             cout << "  " << (i+1) << ". "
                  << "id: " << canciones[i]->getIdCompleto()<<endl//dejemoslo para ver si esta leyendo bien el id
                  << "titulo: " << canciones[i]->getNombre()<<endl
@@ -145,12 +160,16 @@ void Album::mostrarInfo() const {
         cout << "  no hay canciones " << endl;
     }
     cout << endl;
+    *UdeATunesDataset::iteraciones += contador;
 }
 Cancion* Album::buscarCancion(const std::string& id) const {
+    int contador=0;
     for (int i = 0; i < numCanciones; ++i) {
+        ++contador;
         if (canciones[i]->getIdCompleto() == id) {
             return canciones[i];
         }
     }
+    *UdeATunesDataset::iteraciones += contador;
     return nullptr;
 }

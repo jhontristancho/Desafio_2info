@@ -2,9 +2,11 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <udeatunesdataset.h>
 using namespace std;
 
 Usuarios::Usuarios()
+
     : nickname(""), tipoMembresia(TIPO_STANDARD), ciudad(""), pais(""),
     fechaInscripcion(""), contadorReproducciones(0),
     posHistorial(0), numHistorial(0),
@@ -48,6 +50,7 @@ Usuarios::Usuarios(const Usuarios& u)
 }
 // Operador de asignación
 Usuarios& Usuarios::operator=(const Usuarios& u) {
+    int contador=0;
     if (this == &u) {
         return *this;
     }
@@ -67,9 +70,10 @@ Usuarios& Usuarios::operator=(const Usuarios& u) {
     delete[] historialReproduccion;
     historialReproduccion = new std::string[MAX_HISTORIAL];
     for (int i = 0; i < MAX_HISTORIAL; ++i) {
+        ++contador;
         historialReproduccion[i] = u.historialReproduccion[i];
     }
-
+    *UdeATunesDataset::iteraciones +=contador;
     return *this;
 }
 
@@ -161,6 +165,7 @@ bool Usuarios::seguirUsuario(Usuarios* otroUsuario) {
 
 // Los métodos cargarFavoritos... y mostrarInfo permanecen igual
 bool Usuarios::cargarFavoritosDesdeString(const std::string& idsCadena) {
+    int contador=0;
     std::cout << "[DEBUG] Iniciando carga de favoritos para: " << nickname << std::endl;
     if (idsCadena.empty()) {
         std::cout << "[DEBUG] Cadena vacía" << std::endl;
@@ -171,6 +176,7 @@ bool Usuarios::cargarFavoritosDesdeString(const std::string& idsCadena) {
     int agregadas = 0;
     std::cout << "[DEBUG] IDs a procesar: " << idsCadena << std::endl;
     while (std::getline(ss, idStr, ',')) {
+        ++contador;
         std::cout << "[DEBUG] Procesando ID: '" << idStr << "'" << std::endl;
         if (!idStr.empty()) {
             std::cout << "[DEBUG] Llamando a agregarCancion..." << std::endl;
@@ -188,7 +194,7 @@ bool Usuarios::cargarFavoritosDesdeString(const std::string& idsCadena) {
     } else {
         std::cout << "[DEBUG] No se agregaron canciones" << std::endl;
     }
-
+    *UdeATunesDataset::iteraciones += contador;
     return agregadas > 0;
 }
 ListaFavoritos& Usuarios::getListaFavoritos() {

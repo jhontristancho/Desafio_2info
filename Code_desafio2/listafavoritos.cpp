@@ -29,11 +29,15 @@ ListaFavoritos::~ListaFavoritos() {
 
 // Contiene canción - cambiar parámetro a string
 bool ListaFavoritos::contieneCancion(const std::string& id) const {
+    int contador=0;
     for (int i = 0; i < numCanciones; i++) {
+        ++contador;
         if (cancionesIds[i] == id) {
+            *UdeATunesDataset::iteraciones += contador;
             return true;
         }
     }
+    *UdeATunesDataset::iteraciones += contador;
     return false;
 }
 
@@ -61,46 +65,58 @@ bool ListaFavoritos::agregarCancion(const std::string& idCancion) {
 
 // Eliminar canción - cambiar parámetro a string
 bool ListaFavoritos::eliminarCancion(const std::string& id) {
+    int contador=0;
     for (int i = 0; i < numCanciones; i++) {
+        ++contador;
         if (cancionesIds[i] == id) {
             for (int j = i; j < numCanciones - 1; j++) {
+                ++contador;
                 cancionesIds[j] = cancionesIds[j + 1];
             }
             numCanciones--;
             std::cout << "Cancion " << id << " eliminada de favoritos" << std::endl;
+            *UdeATunesDataset::iteraciones += contador;
             return true;
         }
     }
     std::cout << "Cancion " << id << " no encontrada en la lista" << std::endl;
+    *UdeATunesDataset::iteraciones += contador;
     return false;
 }
 
 // Redimensionar - cambiar long* a string*
 void ListaFavoritos::redimensionar(int nuevaCapacidad) {
+    int contador=0;
     std::string* nuevoArray = new std::string[nuevaCapacidad];  // Cambiar a string*
 
     for (int i = 0; i < numCanciones; i++) {
+        ++contador;
         nuevoArray[i] = cancionesIds[i];
     }
 
     delete[] cancionesIds;
     cancionesIds = nuevoArray;
     capacidad = nuevaCapacidad;
+    *UdeATunesDataset::iteraciones += contador;
 }
 
 // Actualizar otros métodos que usen cancionesIds
 void ListaFavoritos::mostrarLista() const {
+    int contador=0;
     std::cout << "LISTA DE FAVORITOS (" << numCanciones << " canciones)" << std::endl;
     for (int i = 0; i < numCanciones; i++) {
+        ++contador;
         std::cout << "nombre: "<<(i + 1) << ". ID: " << cancionesIds[i] << std::endl;
     }
     if (numCanciones == 0) {
         std::cout << "   (Lista vacia)" << std::endl;
     }
+    *UdeATunesDataset::iteraciones += contador;
 }
 
 // Actualizar mostrarLista con dataset
 void ListaFavoritos::mostrarLista(const UdeATunesDataset* dataset) const {
+    int contador=0;
     const ListaFavoritos* listaPropia = this;
     const ListaFavoritos* listaSeg = listaSeguida;
 
@@ -124,6 +140,7 @@ void ListaFavoritos::mostrarLista(const UdeATunesDataset* dataset) const {
     const std::string* canciones = listaFinal.getCancionesIds();
 
     for (int i = 0; i < listaFinal.getNumCanciones(); ++i) {
+        ++contador;
         std::string idCancion = canciones[i];
         std::string nombreCancion = "Desconocida";
 
@@ -142,18 +159,22 @@ void ListaFavoritos::mostrarLista(const UdeATunesDataset* dataset) const {
         cout << "    " << (i + 1) << ". " << nombreCancion
              << " (ID: " << idCancion << ")" << endl;
     }
+    *UdeATunesDataset::iteraciones += contador;
 }
 ListaFavoritos ListaFavoritos::operator+(const ListaFavoritos &otra) const {
+    int contador=0;
     ListaFavoritos nuevaLista(this->numCanciones + otra.numCanciones);
 
     for (int i = 0; i < this->numCanciones; i++) {
+        ++contador;
         nuevaLista.agregarCancion(this->cancionesIds[i]);
     }
 
     for (int i = 0; i < otra.numCanciones; i++) {
+        ++contador;
         nuevaLista.agregarCancion(otra.cancionesIds[i]);
     }
-
+    *UdeATunesDataset::iteraciones += contador;
     return nuevaLista;
 }
 
@@ -166,6 +187,7 @@ const ListaFavoritos* ListaFavoritos::obtenerListaExponer() const {
 }
 // Operador de asignación
 ListaFavoritos& ListaFavoritos::operator=(const ListaFavoritos &l) {
+    int contador=0;
     if (this == &l) {
         return *this;
     }
@@ -183,9 +205,10 @@ ListaFavoritos& ListaFavoritos::operator=(const ListaFavoritos &l) {
 
     // Copiar datos
     for (int i = 0; i < numCanciones; i++) {
+        ++contador;
         cancionesIds[i] = l.cancionesIds[i];
     }
-
+    *UdeATunesDataset::iteraciones += contador;
     return *this;
 }
 int ListaFavoritos::getNumCanciones() const {

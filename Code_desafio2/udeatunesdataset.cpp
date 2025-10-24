@@ -7,6 +7,7 @@
 #include <chrono>
 #include <random>
 #include <ctime>
+long* UdeATunesDataset::iteraciones = new long(0);
 using namespace std::chrono_literals;
 using namespace std;
 const int GROW_FACTOR = 2;
@@ -47,35 +48,44 @@ UdeATunesDataset::~UdeATunesDataset() {
     delete[] lineasCreditos;
     delete[] idsColaboradores;
         delete[] publicidades;
+    delete iteraciones;
 }
 //por si se ocupa toda la capacidad
 void UdeATunesDataset::resizeArtistas() {
+    int contador=0;
     int nuevaCapacidad = capacidadArtistas * GROW_FACTOR;
     Artista* nuevo = new Artista[nuevaCapacidad];
     for (int i = 0; i < numArtistas; ++i) {
+        ++contador;
         nuevo[i] = artistas[i];
     }
     delete[] artistas;
     artistas = nuevo;
     capacidadArtistas = nuevaCapacidad;
+    *iteraciones += contador;
 }
 void UdeATunesDataset::resizeColaboradores() {
+    int contador=0;
     int nuevaCapacidad = capacidadColaboradores * GROW_FACTOR;
     Colaborador* nuevo = new Colaborador[nuevaCapacidad];
     for (int i = 0; i < numColaboradores; ++i) {
+        ++contador;
         nuevo[i] = colaboradores[i];
     }
     delete[] colaboradores;
     colaboradores = nuevo;
     capacidadColaboradores = nuevaCapacidad;
+    *iteraciones += contador;
 }
 void UdeATunesDataset::obtenerSubCampos(const string& campo, char delimitador, string*& resultados, int& numResultados) const {
+    int contador=0;
     delete[] resultados;
     resultados = nullptr;
     numResultados = 0;
     if (campo.empty()) return;
     int count = 1;
     for (char c : campo) {
+        ++contador;
         if (c == delimitador) count++;
     }
     resultados = new string[count];
@@ -83,20 +93,25 @@ void UdeATunesDataset::obtenerSubCampos(const string& campo, char delimitador, s
     size_t start = 0;
     size_t end = campo.find(delimitador);
     while (end != string::npos) {
+        ++contador;
         resultados[numResultados++] = campo.substr(start, end - start);
         start = end + 1;
         end = campo.find(delimitador, start);
     }
     resultados[numResultados++] = campo.substr(start);
+    *iteraciones += contador;
 }
 
 string UdeATunesDataset::obtenerCampo(const string& linea, int campo) const {
+    int contador=0;
     int currentField = 0;
     size_t start = 0;
     size_t end = linea.find(',');
 
     while (end != string::npos) {
+        ++contador;
         if (currentField == campo)
+          *iteraciones += contador;
             return linea.substr(start, end - start);
         start = end + 1;
         end = linea.find(',', start);
@@ -104,15 +119,21 @@ string UdeATunesDataset::obtenerCampo(const string& linea, int campo) const {
     }
 
     if (currentField == campo)
+      *iteraciones += contador;
         return linea.substr(start);
+    *iteraciones += contador;
     return "";
 }
 string UdeATunesDataset::buscarLineaPorID(const string* lineas, int numLineas, const string& idBuscado, int campoID) const {
+    int contador=0;
     for (int i = 0; i < numLineas; ++i) {
+        ++contador;
         for (int i = 0; i < numLineas; ++i) {
+            ++contador;
             std::string idActual = obtenerCampo(lineas[i], campoID);
             if (idBuscado == idActual) {
                 cout << "[DEBUG] Coincide con ID: '" << idActual << "'" << endl;
+                *iteraciones += contador;
                 return lineas[i];
             } else {
                 cout << "[DEBUG] Comparando '" << idBuscado << "' con '" << idActual << "'" << endl;
@@ -120,16 +141,20 @@ string UdeATunesDataset::buscarLineaPorID(const string* lineas, int numLineas, c
         }
 
         if (obtenerCampo(lineas[i], campoID) == idBuscado) {
+            *iteraciones += contador;
             return lineas[i];
         }
     }
+    *iteraciones += contador;
     return "";
 }
 bool UdeATunesDataset::cargarArtistas() {
+    int contador=0;
     cout << "cargando artista para probar" << endl;
     string* lineasArtistas = guardarDinamico("artistas.txt", numArtistas, capacidadArtistas);
     if (!lineasArtistas) return false;
     for (int i = 0; i < numArtistas; ++i) {
+        ++contador;
         string linea = lineasArtistas[i];
         string idStr = obtenerCampo(linea, 0);
         string id = idStr;
@@ -138,13 +163,16 @@ bool UdeATunesDataset::cargarArtistas() {
         artistas[i] = Artista(id, nombre);
     }
     delete[] lineasArtistas;
+    *iteraciones += contador;
     return true;
 }
 bool UdeATunesDataset::cargarColaboradores() {
+    int contador=0;
     cout << " para ver si esta cargando los colaboradores" << endl;
     string* lineasColaboradores = guardarDinamico("colaboradores.txt", numColaboradores, capacidadColaboradores);
     if (!lineasColaboradores) return false;
     for (int i = 0; i < numColaboradores; ++i) {
+        ++contador;
         string linea = lineasColaboradores[i];
         string idStr = obtenerCampo(linea, 0);
         string nombreCompleto = obtenerCampo(linea, 1);
@@ -154,10 +182,12 @@ bool UdeATunesDataset::cargarColaboradores() {
          cout<<nombreCompleto<<rol<<idStr;
     }
     delete[] lineasColaboradores;
+    *iteraciones += contador;
     return true;
 }
 
 bool UdeATunesDataset::procesarCreditosParaCancion(Cancion* cancion, const string& idCreditoStr) {
+    int contador=0;
     if (!cancion) return false;
     string lineaCredito = buscarLineaPorID(lineasCreditos, numLineasCreditos, idCreditoStr, 0);
     if (lineaCredito.empty()) return false;
@@ -172,6 +202,7 @@ bool UdeATunesDataset::procesarCreditosParaCancion(Cancion* cancion, const strin
             Colaborador* arr = new Colaborador[numIds];
             int validCount = 0;
             for (int i = 0; i < numIds; ++i) {
+                ++contador;
                 Colaborador* c = encontrarColaborador(ids[i]);
                 if (c) {
                     arr[validCount++] = *c;
@@ -192,14 +223,17 @@ bool UdeATunesDataset::procesarCreditosParaCancion(Cancion* cancion, const strin
     procesarColaboradores(2, ','); // musicos
     procesarColaboradores(3, ','); // compositores
     cancion->getCreditos() = creditosCancion;
+    *iteraciones += contador;
     return true;
 }
 bool UdeATunesDataset::procesarCancionesParaAlbum(Album& album, Artista* artista, const string& idAlbumCompleto) {
+    int contador=0;
     if (!artista) return false;
     string idAlbumPrefijo = idAlbumCompleto;
     bool tieneCanciones = false;
     cout << "buscando las canciones: " << idAlbumPrefijo << endl;
     for (int j = 0; j < numLineasCanciones; ++j) {
+        ++contador;
         string lineaCancion = lineasCanciones[j];
         string idCancionCompleto = obtenerCampo(lineaCancion, 0);
         if (idCancionCompleto.substr(0, 7) == idAlbumPrefijo) {
@@ -234,9 +268,11 @@ bool UdeATunesDataset::procesarCancionesParaAlbum(Album& album, Artista* artista
             }
         }
     }
+    *iteraciones += contador;
     return tieneCanciones;
 }
 bool UdeATunesDataset::procesarAlbum(const string& lineaAlbum, int indice) {
+    int contador=0;
     if (lineaAlbum.empty()) {
         cerr << "hay una linea vacia en el txt de album" << indice << endl;
         return false;
@@ -256,9 +292,12 @@ bool UdeATunesDataset::procesarAlbum(const string& lineaAlbum, int indice) {
         if (!artista) {
             cerr << " no hay un artista registrado con este id: " << idArtista;
             cout << " los artistas que hay son: ";
-            for (int i = 0; i < numArtistas; ++i)
+            for (int i = 0; i < numArtistas; ++i){
+                ++contador;
                 cout << artistas[i].getIdArtista() << " ";
+            }
             cout << endl;
+            *iteraciones += contador;
             return false;
         }
         cout << " se encontro el artista " << artista->getNombre() << endl;
@@ -267,6 +306,7 @@ bool UdeATunesDataset::procesarAlbum(const string& lineaAlbum, int indice) {
         string rutaPortada = obtenerCampo(lineaAlbum, 3);
         if (nombreAlbum.empty()) {
             cerr << "el album no tiene nombre, error" << endl;
+            *iteraciones += contador;
             return false;
         }
         Album* nuevoAlbum = new Album(idAlbum, nombreAlbum, anio, rutaPortada);//se crea si todo esta correcto
@@ -277,15 +317,18 @@ bool UdeATunesDataset::procesarAlbum(const string& lineaAlbum, int indice) {
             if (!agregado) {
                 delete nuevoAlbum;//para evitar una fuga
             }
+            *iteraciones += contador;
             return agregado;
         } else {
             cout << "como el album no tiene canciones, lo descartamos" << endl;
             delete nuevoAlbum;
+            *iteraciones += contador;
             return false;
         }
 
     } catch (const exception& e) {
         cerr << "no se pudo crear el album" << e.what() << endl;
+        *iteraciones += contador;
         return false;
     }
 }
@@ -310,6 +353,7 @@ Cancion* UdeATunesDataset::buscarCancion(const std::string& id) const {  // Camb
     return nuevaCancion;
 }
 bool UdeATunesDataset::cargarAlbumesYCanciones() {
+    int contador=0;
     cout << "ahora cargamos album y canciones: " << endl;
     lineasAlbumes = guardarDinamico("albumes.txt", numLineasAlbumes, capacidadLineasAlbumes);
     lineasCanciones = guardarDinamico("canciones.txt", numLineasCanciones, capacidadLineasCanciones);
@@ -331,21 +375,25 @@ bool UdeATunesDataset::cargarAlbumesYCanciones() {
     cout << " creditos:  " << numLineasCreditos << endl;
     int albumesCargados = 0;
     for (int i = 0; i < numLineasAlbumes; ++i) {
+        ++contador;
         cout << "cargando album: " << (i+1) << "/" << numLineasAlbumes<< endl;
         if (procesarAlbum(lineasAlbumes[i], i)) {
             albumesCargados++;
         }
     }
     cout << "  > " << albumesCargados << " álbumes cargados exitosamente" << endl;
+    *iteraciones += contador;
     return albumesCargados > 0;
 }
 
 void UdeATunesDataset::resizeUsuarios() {
+    int contador=0;
     int nuevaCapacidad = capacidadUsuarios * GROW_FACTOR;
     Usuarios* nuevo = new Usuarios[nuevaCapacidad];
 
     // Copiamos los usuarios existentes al nuevo arreglo
     for (int i = 0; i < numUsuarios; ++i) {
+        ++contador;
         nuevo[i] = usuarios[i];
     }
 
@@ -355,6 +403,7 @@ void UdeATunesDataset::resizeUsuarios() {
 
     cout << "[INFO_DATASET]: Arreglo de usuarios redimensionado a "
          << capacidadUsuarios << endl;
+    *iteraciones += contador;
 }
 /**
  * @brief Carga los usuarios desde un archivo de texto.
@@ -363,6 +412,7 @@ void UdeATunesDataset::resizeUsuarios() {
  * @return true si la carga fue exitosa, false en caso contrario.
  */
 bool UdeATunesDataset::cargarUsuarios() {
+    int contador=0;
     cout << "Cargando usuarios "<< endl;
 
     int numLineasLeidas = 0;
@@ -375,6 +425,7 @@ bool UdeATunesDataset::cargarUsuarios() {
     }
 
     for (int i = 0; i < numLineasLeidas; ++i) {
+        ++contador;
         if (numUsuarios >= capacidadUsuarios) {
             resizeUsuarios();
         }
@@ -400,29 +451,38 @@ bool UdeATunesDataset::cargarUsuarios() {
 
     delete[] lineasUsuarios;
     cout << " > Carga finalizada. " << numUsuarios << " usuarios cargados." << endl;
+    *iteraciones += contador;
     return true;
 }
 
 // metodo para la busqueda
 Artista* UdeATunesDataset::getArtista(string id) const {
+    int contador=0;
     cout << " buscar el artista: " << id << endl;
     for (int i = 0; i < numArtistas; ++i) {
+        ++contador;
         cout << " comparamos:  " << artistas[i].getIdArtista() << " - " << artistas[i].getNombre() << endl;
         if (artistas[i].getIdArtista() == id) {
             cout << " coincide " << endl;
+            *iteraciones += contador;
             return &artistas[i];
         }
     }
     cout << " no coincide, ese artista no esta " << endl;
+    *iteraciones += contador;
     return nullptr;
 }
 Colaborador* UdeATunesDataset::encontrarColaborador(const string& idColaborador) const {
+    int contador=0;
     long idNum = stol(idColaborador); // ✅ convertir una sola vez
     for (int i = 0; i < numColaboradores; ++i) {
+        ++contador;
         if (idsColaboradores[i] == idNum) {
+            *iteraciones += contador;
             return &colaboradores[i];
         }
     }
+    *iteraciones += contador;
     return nullptr;
 }
 float UdeATunesDataset::parseDuracion(const string& duracionStr) const {//para encontrar la duracion
@@ -474,6 +534,7 @@ bool UdeATunesDataset::cargarDatos() {
     return exito;
 }
 bool UdeATunesDataset::cargarListasDeFavoritos(const std::string& rutaArchivo) {
+    int contador=0;
     std::ifstream archivo(rutaArchivo);
     if (!archivo.is_open()) {
         std::cerr << "[ERROR] No se pudo abrir el archivo: " << rutaArchivo << std::endl;
@@ -484,6 +545,7 @@ bool UdeATunesDataset::cargarListasDeFavoritos(const std::string& rutaArchivo) {
     std::string linea;
     int listasCargadas = 0;
     while (std::getline(archivo, linea)) {
+        ++contador;
         if (linea.empty()) continue;
         size_t pos_separador = linea.find(':');
         if (pos_separador == std::string::npos) continue;
@@ -491,6 +553,7 @@ bool UdeATunesDataset::cargarListasDeFavoritos(const std::string& rutaArchivo) {
         std::string canciones_str = linea.substr(pos_separador + 1);
         Usuarios* usuario = nullptr;
         for (int i = 0; i < numUsuarios; ++i) {
+            ++contador;
             if (usuarios[i].getNickname() == nickname) {
                 usuario = &usuarios[i];
                 break;
@@ -509,19 +572,24 @@ bool UdeATunesDataset::cargarListasDeFavoritos(const std::string& rutaArchivo) {
 
     archivo.close();
     std::cout << "[INFO] Listas de favoritos cargadas para " << listasCargadas << " usuarios." << std::endl;
+    *iteraciones += contador;
     return true;
 }
 void UdeATunesDataset::resizePublicidades() {
+    int contador=0;
     int nuevaCapacidad = capacidadPublicidades * GROW_FACTOR;
     Publicidad* nuevo = new Publicidad[nuevaCapacidad];
     for (int i = 0; i < numPublicidades; ++i) {
+        ++contador;
         nuevo[i] = publicidades[i];
     }
     delete[] publicidades;
     publicidades = nuevo;
     capacidadPublicidades = nuevaCapacidad;
+    *iteraciones += contador;
 }
 bool UdeATunesDataset::cargarPublicidadesPorDefecto() {
+    int contador=0;
     cout << "=== CARGANDO PUBLICIDADES POR DEFECTO ===" << endl;
 
     // Publicidades de ejemplo bien formadas y validadas
@@ -547,6 +615,7 @@ bool UdeATunesDataset::cargarPublicidadesPorDefecto() {
     int numDefecto = sizeof(publicidadesDefecto) / sizeof(publicidadesDefecto[0]);
 
     for (int i = 0; i < numDefecto; i++) {
+        ++contador;
         if (numPublicidades >= capacidadPublicidades) {
             resizePublicidades();
         }
@@ -566,10 +635,11 @@ bool UdeATunesDataset::cargarPublicidadesPorDefecto() {
 
     cout << "✅ " << numPublicidades << " publicidades por defecto cargadas" << endl;
     cout << "=====================================" << endl;
-
+    *iteraciones += contador;
     return numPublicidades > 0;
 }
 bool UdeATunesDataset::cargarPublicidades() {
+    int contador=0;
     cout << "=== CARGANDO PUBLICIDADES ===" << endl;
 
     // ✅ LIMPIAR PUBLICIDADES EXISTENTES
@@ -591,6 +661,7 @@ bool UdeATunesDataset::cargarPublicidades() {
     int lineasOmitidas = 0;
 
     for (int i = 0; i < numLineasLeidas; ++i) {
+        ++contador;
         if (numPublicidades >= capacidadPublicidades) {
             resizePublicidades();
         }
@@ -723,17 +794,20 @@ bool UdeATunesDataset::cargarPublicidades() {
     // ✅ SI NO SE CARGÓ NADA, USAR PUBLICIDADES POR DEFECTO
     if (numPublicidades == 0) {
         cout << "🔄 No se cargaron publicidades válidas, usando por defecto..." << endl;
+        *iteraciones += contador;
         return cargarPublicidadesPorDefecto();
     }
 
     cout << "✅ Carga de publicidades completada exitosamente" << endl;
     cout << "=====================================" << endl;
+    *iteraciones += contador;
 
     return true;
 }
 
 
 Publicidad* UdeATunesDataset::obtenerPublicidadAleatoria() {
+    int contador=0;
     if (numPublicidades == 0) {
         cout << "❌ ERROR: No hay publicidades disponibles" << endl;
         return nullptr;
@@ -744,6 +818,7 @@ Publicidad* UdeATunesDataset::obtenerPublicidadAleatoria() {
     // Calcular peso total basado en prioridades
     int pesoTotal = 0;
     for (int i = 0; i < numPublicidades; ++i) {
+        ++contador;
         pesoTotal += publicidades[i].getPrioridad();
         cout << "[DEBUG] Publicidad " << i << ": '" << publicidades[i].getMensaje()
              << "' - Cat: " << publicidades[i].getCategoria()
@@ -758,6 +833,7 @@ Publicidad* UdeATunesDataset::obtenerPublicidadAleatoria() {
 
     int acumulado = 0;
     for (int i = 0; i < numPublicidades; ++i) {
+        ++contador;
         acumulado += publicidades[i].getPrioridad();
         cout << "[DEBUG] Probando publicidad " << i << " - acumulado: " << acumulado << endl;
 
@@ -767,19 +843,23 @@ Publicidad* UdeATunesDataset::obtenerPublicidadAleatoria() {
                 int nextIndex = (i + 1) % numPublicidades;
                 ultimaPublicidadMostrada = nextIndex;
                 cout << "[DEBUG] ✅ Publicidad seleccionada (evitando consecutiva): " << nextIndex << endl;
+                *iteraciones += contador;
                 return &publicidades[nextIndex];
             }
 
             ultimaPublicidadMostrada = i;
             cout << "[DEBUG] ✅ Publicidad seleccionada: " << i << endl;
+            *iteraciones += contador;
             return &publicidades[i];
         }
     }
 
     cout << "[DEBUG] ⚠️  Fallback a publicidad 0" << endl;
+    *iteraciones += contador;
     return &publicidades[0]; // Fallback
 }
 string* UdeATunesDataset::guardarDinamico(const string& nombreArchivo, int& numLineas, int& capacidadFinal, int capacidadInicial) {
+    int contador=0;
     ifstream archivo(nombreArchivo);
     if (!archivo.is_open()) {
         cerr << "no se pudo abrir el archivo:  " << nombreArchivo << endl;
@@ -791,11 +871,13 @@ string* UdeATunesDataset::guardarDinamico(const string& nombreArchivo, int& numL
     numLineas = 0;
     int capacidad = capacidadInicial;
     while (getline(archivo, linea)) {
+        ++contador;
         if (!linea.empty()) {//esta es para ignorar las lineas que esten vacias
             if (numLineas >= capacidad) {
                 capacidad *= GROW_FACTOR;
                 string* nuevasLineas = new string[capacidad];
                 for (int i = 0; i < numLineas; ++i) {
+                    ++contador;
                     nuevasLineas[i] = lineas[i];
                 }
                 delete[] lineas;
@@ -808,6 +890,7 @@ string* UdeATunesDataset::guardarDinamico(const string& nombreArchivo, int& numL
     archivo.close();
     capacidadFinal = capacidad;
     cout << " fue correcto la carga de " << nombreArchivo << " - " << numLineas << "numero de lineas leidas" << endl;
+    *iteraciones += contador;
     return lineas;
 }
 Cancion* UdeATunesDataset::reproducirCancionAleatoria(Usuarios* usuario) {
@@ -833,6 +916,7 @@ Cancion* UdeATunesDataset::reproducirCancionAleatoria(Usuarios* usuario) {
     return new Cancion(idCancion, nombreCancion, parseDuracion(duracionStr), ruta128, "");
 }
 void UdeATunesDataset::reproducirListaFavoritos(Usuarios* usuario, bool aleatoria) {
+    int contador=0;
     const ListaFavoritos* lista = &usuario->getListaFavoritos();
 
     if (!lista || lista->getNumCanciones() == 0) {
@@ -856,6 +940,7 @@ void UdeATunesDataset::reproducirListaFavoritos(Usuarios* usuario, bool aleatori
     int historialSize = 0;
 
     while (reproduciendo) {
+        ++contador;
         std::string id = canciones[indiceActual];
         mostrarReproduccion(id, usuario, false);
 
@@ -896,9 +981,11 @@ void UdeATunesDataset::reproducirListaFavoritos(Usuarios* usuario, bool aleatori
             cout << "❌ Opción inválida.\n";
         }
     }
+    *iteraciones += contador;
 }
 
 void UdeATunesDataset::menuFavoritosPremium(Usuarios* usuario) {
+    int contador=0;
     if (usuario->getTipoMembresia() != 1) {
         cout << "⚠️ Solo disponible para usuarios Premium.\n";
         return;
@@ -906,6 +993,7 @@ void UdeATunesDataset::menuFavoritosPremium(Usuarios* usuario) {
 
     bool continuar = true;
     while (continuar) {
+        ++contador;
         cout << "\n=== MENÚ DE FAVORITOS ===\n";
         cout << "1. Mostrar mi lista\n";
         cout << "2. Agregar canción\n";
@@ -970,9 +1058,11 @@ void UdeATunesDataset::menuFavoritosPremium(Usuarios* usuario) {
             cout << "❌ Opción inválida.\n";
         }
     }
+    *iteraciones += contador;
 }
 // Centraliza la impresión cuando se inicia la reproducción de una canción
 void UdeATunesDataset::mostrarReproduccion(const std::string& idCancion, Usuarios* usuario, bool mostrarPublicidad) {
+    int contador=0;
     // obtener linea y datos
     std::string lineaCancion = buscarLineaPorID(lineasCanciones, numLineasCanciones, idCancion, 0);
     if (lineaCancion.empty()) {
@@ -992,6 +1082,7 @@ void UdeATunesDataset::mostrarReproduccion(const std::string& idCancion, Usuario
     std::string rutaAlbum = "Ruta portada desconocida";
     if (artista) {
         for (int j = 0; j < artista->getNumAlbumes(); ++j) {
+            ++contador;
             Album* a = artista->getAlbumAt(j);
             std::string albumIdPadded = (a->getIdAlbum());
             if (albumIdPadded == idAlbumCompleto) {
@@ -1024,14 +1115,17 @@ void UdeATunesDataset::mostrarReproduccion(const std::string& idCancion, Usuario
     cout << "Ruta archivo: " << ruta128 << endl;
     cout << "Duración: " << duracionStr << " minutos" << endl;
     cout << "--------------------------------------" << endl;
+    *iteraciones += contador;
 }
 bool UdeATunesDataset::guardarListasDeFavoritos(const std::string& rutaArchivo) const {
+    int contador=0;
     std::fstream fs(rutaArchivo, std::ios::out);
     if (!fs.is_open()) {
         std::cerr << "[ERROR] No se pudo abrir para escribir: " << rutaArchivo << std::endl;
         return false;
     }
     for (int i = 0; i < numUsuarios; ++i) {
+        ++contador;
         const Usuarios& u = usuarios[i];
         const ListaFavoritos& lf = u.getListaFavoritos(); // necesitas exponer getListaFavoritos() en Usuarios
         // construir línea: nickname:id1,id2,...
@@ -1045,9 +1139,11 @@ bool UdeATunesDataset::guardarListasDeFavoritos(const std::string& rutaArchivo) 
     }
     fs.close();
     std::cout << "[INFO] Listas de favoritos guardadas en " << rutaArchivo << std::endl;
+    *iteraciones += contador;
     return true;
 }
 void UdeATunesDataset::iniciarSesionYReproducir() {
+    int contador=0;
     cout << "\n========== BIENVENIDO A UDEATUNES ==========\n";
     cout << "Ingrese su nickname para iniciar sesión: ";
     string nickname;
@@ -1055,6 +1151,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
 
     Usuarios* usuario = nullptr;
     for (int i = 0; i < numUsuarios; ++i) {
+        ++contador;
         if (usuarios[i].getNickname() == nickname) {
             usuario = &usuarios[i];
             break;
@@ -1063,6 +1160,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
 
     if (!usuario) {
         cout << "❌ Usuario no encontrado.\n";
+        *iteraciones += contador;
         return;
     }
 
@@ -1076,6 +1174,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
 
     if (respuesta != 's' && respuesta != 'S') {
         cout << "ℹ️ Reproducción cancelada por el usuario.\n";
+        *iteraciones += contador;
         return;
     }
 
@@ -1092,6 +1191,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
 
         // Reproducir K canciones automáticamente
         for (int i = 0; i < K; ++i) {
+            ++contador;
             // Publicidad cada 2 canciones
             if (contadorPublicidad == 2) {
                 contadorPublicidad = 0;
@@ -1121,6 +1221,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
         // Menú para detener manualmente
         char opcion;
         while (reproduciendo) {
+            ++contador;
             cout << "\n⏹️ ¿Desea detener la reproducción? (s/n): ";
             cin >> opcion;
             if (opcion == 's' || opcion == 'S') {
@@ -1135,6 +1236,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
         }
 
         delete ultimaCancion;
+        *iteraciones += contador;
         return;
     }
 
@@ -1148,6 +1250,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
 
     // 🔁 Reproducción automática de 5 canciones con temporizador
     for (int i = 0; i < K; ++i) {
+        ++contador;
         if (actual && totalHistorial < 4)
             historial[totalHistorial++] = actual->getIdCompleto();
 
@@ -1164,6 +1267,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
     // Menú interactivo
     bool enMenu = true;
     while (enMenu) {
+        ++contador;
         cout << "\nOpciones Premium:\n";
         cout << "1. ⏭️ Siguiente canción\n";
         cout << "2. ⏮️ Canción previa\n";
@@ -1228,4 +1332,5 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
     }
 
     delete actual;
+    *iteraciones += contador;
 }
