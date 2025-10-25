@@ -82,8 +82,7 @@ private:
     // ==============================
     // 🔹 Búsquedas internas
     // ==============================
-    Artista* getArtista(std::string id) const;
-    Colaborador* encontrarColaborador(const std::string& idColaborador) const;
+
 
 public:
     static long* iteraciones;
@@ -107,7 +106,8 @@ public:
     Artista* getArtistaAt(int idx) const {
         return (idx >= 0 && idx < numArtistas) ? &artistas[idx] : nullptr;
     }
-
+    Colaborador* encontrarColaborador(const std::string& idColaborador) const;
+    Artista* getArtista(const std::string& id) const;
     int getNumColaboradores() const { return numColaboradores; }
     Colaborador* getColaboradores() const { return colaboradores; }
 

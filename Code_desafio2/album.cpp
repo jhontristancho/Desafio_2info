@@ -113,7 +113,6 @@ nombre = otra.nombre;
 bool Album::agregarCancion(Cancion* c) {
     int contador=0;
     if (!c) return false;
-
     // evitar duplicados
     for (int i = 0; i < numCanciones; ++i){
         ++contador;
@@ -121,14 +120,11 @@ bool Album::agregarCancion(Cancion* c) {
     }
     if (numCanciones >= capacidadCanciones)
         resizeCanciones();
-
     canciones[numCanciones++] = c;
     duracionTotal += c->getDuracion();
     *UdeATunesDataset::iteraciones += contador;
     return true;
 }
-
-
 void Album::setGeneros(const std::string* gens, int num) {//pa el futuro o si se implementa
 
     delete[] generos;
@@ -140,8 +136,7 @@ void Album::setGeneros(const std::string* gens, int num) {//pa el futuro o si se
             generos[i] = gens[i];
     } else numGeneros = 0;
 }
-
-void Album::mostrarInfo() const {
+void Album::mostrarInfo() const {//despliegue
     int contador=0;
     cout << "album" << endl;
     cout << "id: " << idAlbum << "nombre: " << nombre << endl;//el id del album igual, pero por ahora dejemoslo y si no lo quitamos

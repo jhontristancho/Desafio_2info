@@ -36,7 +36,7 @@ void Creditos::setProductores(const Colaborador* prod, int num) {
         productores = new Colaborador[num];
         for (int i = 0; i < num; ++i) {
             ++contador;
-            productores[i] = prod[i]; // copia del objeto colaborador
+            productores[i] = prod[i]; //copia del objeto colaborador
         }
     }
     *UdeATunesDataset::iteraciones += contador;
@@ -70,8 +70,7 @@ void Creditos::setCompositores(const Colaborador* comp, int num) {
     *UdeATunesDataset::iteraciones += contador;
     numCompositores = num;
 }
-
-void Creditos::mostrarCreditos() const {
+void Creditos::mostrarCreditos() const {//en la hoja todavia no se habla de mostrar creditos pero si nos piden la funcionalidad aqui estaria
     auto imprimirLista = [](const Colaborador* lista, int num, const std::string& titulo) {
     cout<< titulo << " " << num << ":";
         if (num == 0) {
@@ -85,9 +84,8 @@ void Creditos::mostrarCreditos() const {
         }
         cout <<endl;
     };
-
     cout << "creditos"<< endl;
-    imprimirLista(productores, numProductores, "Productores");
+    imprimirLista(productores, numProductores, "productores");
     imprimirLista(musicos, numMusicos, "musicos");
     imprimirLista(compositores, numCompositores, "compositores");
 }

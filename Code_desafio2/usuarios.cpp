@@ -4,9 +4,7 @@
 #include <sstream>
 #include <udeatunesdataset.h>
 using namespace std;
-
 Usuarios::Usuarios()
-
     : nickname(""), tipoMembresia(TIPO_STANDARD), ciudad(""), pais(""),
     fechaInscripcion(""), contadorReproducciones(0),
     posHistorial(0), numHistorial(0),
@@ -40,9 +38,6 @@ Usuarios::Usuarios(const Usuarios& u)
     contadorReproducciones(u.contadorReproducciones),
     listaFavoritos(u.listaFavoritos),
     posHistorial(u.posHistorial), numHistorial(u.numHistorial) {
-
-    cout << "[DEBUG Usuarios] Constructor de copia para: " << nickname << endl;
-
     historialReproduccion = new std::string[MAX_HISTORIAL];
     for (int i = 0; i < MAX_HISTORIAL; ++i) {
         historialReproduccion[i] = u.historialReproduccion[i];
@@ -141,16 +136,16 @@ bool Usuarios::debeMostrarPublicidad() {
 
 void Usuarios::reproducirLista(bool aleatoria) {
     if (tipoMembresia != TIPO_PREMIUM) {
-        cout << "[ERROR] La lista de favoritos es solo para Premium." << endl;
+        cout << "la lista de favoritos es solo para Premium." << endl;
         return;
     }
-    cout << "Iniciando reproduccion de la lista de favoritos." << endl;
-    cout << "Modo: " << (aleatoria ? "Aleatorio" : "Orden original") << endl;
+    cout << "iniciando reproduccion de la lista de favoritos." << endl;
+    cout << "modo: " << (aleatoria ? "aleatorio" : "orden original") << endl;
 }
 
 bool Usuarios::seguirUsuario(Usuarios* otroUsuario) {
     if (this->tipoMembresia != TIPO_PREMIUM || otroUsuario->tipoMembresia != TIPO_PREMIUM) {
-        std::cout << "[ERROR] Solo usuarios Premium pueden seguir listas." << std::endl;
+        std::cout << "solo usuarios Premium pueden seguir listas." << std::endl;
         return false;
     }
     if (this == otroUsuario) {
