@@ -24,7 +24,9 @@ private:
     std::string* historialReproduccion;
     int posHistorial;
     int numHistorial;
-
+          ListaFavoritos listaFavoritos;
+Usuarios* usuarioSeguido = nullptr;
+std::string nicknameSeguidoTemp;
 public:
     // Constructores y Destructor
     Usuarios();
@@ -34,7 +36,6 @@ public:
     Usuarios& operator=(const Usuarios& u);
     ~Usuarios();
     int getContadorReproducciones() const { return contadorReproducciones; }
-    ListaFavoritos& getListaFavoritos();
     const ListaFavoritos* getListaSeguida() const;
     bool seguirListaFavoritos(const ListaFavoritos* listaOtra);
 
@@ -43,18 +44,24 @@ public:
                 contadorReproducciones > 0 &&
                 (contadorReproducciones % 2) == 0);
     }
-    ListaFavoritos listaFavoritos;
     // Getters
     std::string getNickname() const { return nickname; }
     int getTipoMembresia() const { return tipoMembresia; }
     std::string getCiudad() const { return ciudad; }
     std::string getPais() const { return pais; }
     std::string getFechaInscripcion() const { return fechaInscripcion; }
-    const ListaFavoritos& getListaFavoritos() const { return listaFavoritos; }
-
+    ListaFavoritos& getListaFavoritos();
+    Usuarios* getUsuarioSeguido() const {
+        return usuarioSeguido;
+    }
+    const std::string& getNicknameSeguidoTemp() const {
+        return nicknameSeguidoTemp;
+    }
     // Setters
     void setTipoMembresia(int tipo) { tipoMembresia = tipo; }
-
+    void setNicknameSeguidoTemp(const std::string& nickname) {
+        this->nicknameSeguidoTemp = nickname;
+    }
     // Métodos de Funcionalidad
     void registrarReproduccion(Cancion* c);
     int getCalidadAudio() const;
@@ -65,6 +72,10 @@ public:
     // ✅ CAMBIAR: int* a std::string*
     std::string* getCancionAnterior();
     bool dejarDeSeguir();
+    // 3. Limpia el nickname seguido temporal después de que el puntero ha sido resuelto.
+    void clearNicknameSeguidoTemp() {
+        this->nicknameSeguidoTemp.clear();
+    }
     bool cargarFavoritosDesdeString(const std::string& idsCadena);
     bool cargarFavoritosDesdeArchivo(const std::string& rutaArchivo);
     void mostrarInfo(const UdeATunesDataset* dataset) const;

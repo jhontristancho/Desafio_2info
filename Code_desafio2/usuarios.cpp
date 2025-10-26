@@ -28,22 +28,27 @@ Usuarios::Usuarios(const std::string& nick, int tipo, const std::string& ciu,
     }
 }
 Usuarios::Usuarios(const Usuarios& u)
-    : nickname(u.nickname), tipoMembresia(u.tipoMembresia),
-    ciudad(u.ciudad), pais(u.pais),
-    fechaInscripcion(u.fechaInscripcion),
-    contadorReproducciones(u.contadorReproducciones),
-    listaFavoritos(u.listaFavoritos),
-    posHistorial(u.posHistorial), numHistorial(u.numHistorial) {
-    historialReproduccion = new std::string[MAX_HISTORIAL];
-    for (int i = 0; i < MAX_HISTORIAL; ++i) {
-        historialReproduccion[i] = u.historialReproduccion[i];
+    : nickname(u.nickname), tipoMembresia(u.tipoMembresia), ciudad(u.ciudad), pais(u.pais),
+    fechaInscripcion(u.fechaInscripcion), contadorReproducciones(u.contadorReproducciones),
+    posHistorial(u.posHistorial), numHistorial(u.numHistorial),
+    listaFavoritos(u.listaFavoritos), // Llama al constructor de copia de ListaFavoritos (DEEP COPY)
+
+    // 🏆 CORRECCIÓN CLAVE 1: Inicializar el puntero delegado a nullptr
+    usuarioSeguido(nullptr) // El seguimiento NO se copia; se resuelve en la carga
+{
+    // 🏆 CORRECCIÓN CLAVE 2: Copia profunda de historialReproduccion
+    this->historialReproduccion = new std::string[MAX_HISTORIAL];
+    for(int i = 0; i < MAX_HISTORIAL; ++i) {
+        this->historialReproduccion[i] = u.historialReproduccion[i];
     }
 }
 Usuarios& Usuarios::operator=(const Usuarios& u) {
-    int contador=0;
+    int contador = 0;
     if (this == &u) {
         return *this;
     }
+
+    // 1. Copiar miembros primitivos y strings
     nickname = u.nickname;
     tipoMembresia = u.tipoMembresia;
     ciudad = u.ciudad;
@@ -53,37 +58,42 @@ Usuarios& Usuarios::operator=(const Usuarios& u) {
     posHistorial = u.posHistorial;
     numHistorial = u.numHistorial;
 
+    // 2. ¡CORRECCIÓN CLAVE! Neutralizar el puntero de objeto.
+    // El seguimiento DEBE ser resuelto SÓLO durante la carga de datos (Doble Pase).
+    // Evita que el objeto copiado apunte a la dirección antigua del seguido.
+    this->usuarioSeguido = nullptr;
+
+    // 3. Copia profunda de ListaFavoritos (llama a ListaFavoritos::operator=)
     listaFavoritos = u.listaFavoritos;
+
+    // 4. Copia profunda del Historial
     delete[] historialReproduccion;
     historialReproduccion = new std::string[MAX_HISTORIAL];
     for (int i = 0; i < MAX_HISTORIAL; ++i) {
         ++contador;
         historialReproduccion[i] = u.historialReproduccion[i];
     }
-    *UdeATunesDataset::iteraciones +=contador;
+
+    *UdeATunesDataset::iteraciones += contador;
     return *this;
 }
-
-// Destructor
+// En el destructor de Usuarios
 Usuarios::~Usuarios() {
-    delete[] historialReproduccion;
+    // Asegúrate de que solo liberas el array de strings
+    if (historialReproduccion != nullptr) {
+        delete[] historialReproduccion;
+    }
+    // No debes liberar listaFavoritos (es miembro, no puntero)
+    // No debes liberar usuarioSeguido (es puntero de objeto externo)
 }
-
-// Método registrarReproduccion actualizado
 void Usuarios::registrarReproduccion(Cancion* c) {
     if (!c) return;
-
     contadorReproducciones++;
-
     if (tipoMembresia == TIPO_PREMIUM) {
         int posAnterior = (posHistorial - 1 + MAX_HISTORIAL) % MAX_HISTORIAL;
-
-        // ✅ CAMBIAR: comparar strings
         if (numHistorial > 0 && historialReproduccion[posAnterior] == c->getIdCompleto()) {
             return;
         }
-
-        // ✅ CAMBIAR: asignar string
         historialReproduccion[posHistorial] = c->getIdCompleto();
 
         posHistorial = (posHistorial + 1) % MAX_HISTORIAL;
@@ -93,27 +103,21 @@ void Usuarios::registrarReproduccion(Cancion* c) {
         }
     }
 }
-
-// ✅ CAMBIAR: getCancionAnterior devuelve string*
 std::string* Usuarios::getCancionAnterior() {
     if (tipoMembresia == TIPO_STANDARD) {
-        cout << "Usuarios estandar no pueden retroceder canciones." << endl;
+        cout << "usuarios estandar no pueden retroceder canciones." << endl;
         return nullptr;
     }
     if (numHistorial == 0) {
-        cout << "No hay canciones previas en el historial." << endl;
+        cout << "no hay canciones previas en el historial." << endl;
         return nullptr;
     }
-
     posHistorial = (posHistorial - 1 + MAX_HISTORIAL) % MAX_HISTORIAL;
     numHistorial--;
-
     return &historialReproduccion[posHistorial];
 }
-
-// Los demás métodos permanecen igual...
 int Usuarios::getCalidadAudio() const {
-    if (tipoMembresia == TIPO_PREMIUM) {
+    if (tipoMembresia == TIPO_PREMIUM) {//para ver si se le mueestra al usuario cual
         return 320;
     } else {
         return 128;
@@ -136,72 +140,79 @@ void Usuarios::reproducirLista(bool aleatoria) {
 
 bool Usuarios::seguirUsuario(Usuarios* otroUsuario) {
     if (this->tipoMembresia != TIPO_PREMIUM || otroUsuario->tipoMembresia != TIPO_PREMIUM) {
-        std::cout << "solo usuarios Premium pueden seguir listas." << std::endl;
+        std::cout << "[ERROR] Solo usuarios Premium pueden seguir listas de otros usuarios Premium." << std::endl;
         return false;
     }
     if (this == otroUsuario) {
         std::cout << "[ERROR] No puedes seguir tu propia lista." << std::endl;
         return false;
     }
-    this->listaFavoritos.setListaSeguida(&(otroUsuario->listaFavoritos));
+    if (this->usuarioSeguido != nullptr) {
+        std::cout << "[ERROR] Ya estás siguiendo la lista de '" << this->usuarioSeguido->nickname << "'. Debes dejar de seguirlo primero." << std::endl;
+        return false;
+    }
+    // 3. Establecer el seguimiento
+    this->usuarioSeguido = otroUsuario; // Almacenar el puntero del usuario
+    this->listaFavoritos.setListaSeguida(&(otroUsuario->listaFavoritos)); // Delegar la visualización/reproducción
     std::cout << "[INFO] El usuario '" << this->nickname << "' ahora sigue la lista de '"
               << otroUsuario->nickname << "'." << std::endl;
     return true;
 }
-
-// Los métodos cargarFavoritos... y mostrarInfo permanecen igual
 bool Usuarios::cargarFavoritosDesdeString(const std::string& idsCadena) {
-    int contador=0;
+    int contador = 0;
     if (idsCadena.empty()) {
+        // Llama a un método para vaciar la lista de favoritos propia
+        listaFavoritos.establecerCancionesPropias(nullptr, 0);
         return false;
     }
-    std::stringstream ss(idsCadena);
-    std::string idStr;
-    int agregadas = 0;
-    while (std::getline(ss, idStr, ',')) {
-        ++contador;
-        if (!idStr.empty()) {
-            if (listaFavoritos.agregarCancion(idStr)) {
-                agregadas++;
-            } else {
-            }
+
+    // --- 1. Contar IDs para asignar memoria ---
+    int numIds = 1; // Asume al menos un ID si la cadena no está vacía
+    for (char c : idsCadena) {
+        if (c == ',') {
+            numIds++;
         }
     }
 
-    if (agregadas > 0) {
-    } else {
+    // --- 2. Asignar memoria dinámica para IDs temporales ---
+    std::string* idsCargados = new std::string[numIds];
+    int idx = 0;
+
+    // --- 3. Parseo manual sin STL containers (usando find/substr) ---
+    size_t inicio = 0;
+    size_t fin = idsCadena.find(',');
+
+    while (fin != std::string::npos) {
+        if (idx < numIds) {
+            idsCargados[idx++] = idsCadena.substr(inicio, fin - inicio);
+        }
+        inicio = fin + 1;
+        fin = idsCadena.find(',', inicio);
+        ++contador;
     }
+    // Añadir el último ID
+    if (idx < numIds) {
+        idsCargados[idx++] = idsCadena.substr(inicio);
+    }
+
+    // Ajustar numIds al conteo real (si había comas al final o vacíos)
+    numIds = idx;
+
+    // --- 4. Llamada al nuevo método de carga masiva ---
+    // Este método es crucial para reemplazar el array interno de la lista.
+    listaFavoritos.establecerCancionesPropias(idsCargados, numIds);
+
+    // --- 5. Liberar memoria temporal ---
+    delete[] idsCargados;
+
     *UdeATunesDataset::iteraciones += contador;
-    return agregadas > 0;
-}
-ListaFavoritos& Usuarios::getListaFavoritos() {
-    return listaFavoritos;
+    return numIds > 0;
 }
 const ListaFavoritos* Usuarios::getListaSeguida() const {
     return listaFavoritos.obtenerListaExponer();
 }
-bool Usuarios::seguirListaFavoritos(const ListaFavoritos* listaOtra) {
-    if (this->tipoMembresia != TIPO_PREMIUM) {
-        cout << "Solo los usuarios Premium pueden seguir listas." << endl;
-        return false;
-    }
-
-    if (!listaOtra) {
-        cout << "La lista a seguir no existe.\n";
-        return false;
-    }
-
-    // Evitar seguir la propia lista
-    if (listaOtra == &this->listaFavoritos) {
-        cout << "No puedes seguir tu propia lista." << endl;
-        return false;
-    }
-    ListaFavoritos nuevaLista = this->listaFavoritos + *listaOtra;
-    this->listaFavoritos = nuevaLista;
-    cout << "Has seguido correctamente la lista. "
-         << "Ahora tu lista contiene " << this->listaFavoritos.getNumCanciones()
-         << " canciones (incluidas las de la lista seguida)." << endl;
-    return true;
+ListaFavoritos& Usuarios::getListaFavoritos() {
+    return listaFavoritos;
 }
 void Usuarios::mostrarInfo(const UdeATunesDataset* dataset) const {
     cout << "Perfil de Usuario"<<endl;
@@ -220,11 +231,24 @@ void Usuarios::mostrarInfo(const UdeATunesDataset* dataset) const {
     cout << "-------------------------\n";
 }
 bool Usuarios::dejarDeSeguir() {
-    if (listaFavoritos.getListaSeguida() == nullptr) {
-        cout << "[INFO] No estás siguiendo ninguna lista." << endl;
+
+    // 1. Validar el estado de seguimiento usando la nueva metadata (más robusto)
+    if (this->usuarioSeguido == nullptr) {
+        cout << "[INFO] No estás siguiendo a ningún usuario." << endl;
         return false;
     }
+
+    // Guardar el nombre antes de borrar el puntero para el mensaje de confirmación
+    std::string nicknameSeguido = this->usuarioSeguido->getNickname();
+
+    // 2. ¡CORRECCIÓN CLAVE! Borrar el puntero de la metadata del usuario.
+    // Esto asegura que guardarListasDeFavoritos() escriba un campo vacío en el TXT.
+    this->usuarioSeguido = nullptr;
+
+    // 3. Borrar la delegación de la lista (esto es lo que ya tenías)
     listaFavoritos.setListaSeguida(nullptr);
-    cout << "[INFO] Has dejado de seguir la lista." << endl;
+
+    cout << "[INFO] Has dejado de seguir la lista de '" << nicknameSeguido << "'." << endl;
+
     return true;
 }

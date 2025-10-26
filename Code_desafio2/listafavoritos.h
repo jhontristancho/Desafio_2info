@@ -5,7 +5,7 @@ class UdeATunesDataset;
 class Cancion;
 class ListaFavoritos {
 private:
-    std::string* cancionesIds;  // Cambiar de long* a string*
+    std::string* cancionesIds;
     int numCanciones;
     int capacidad;
     static const int MAX_CANCIONES = 10000;
@@ -25,6 +25,7 @@ public:
     bool eliminarCancion(const std::string& id);  // Cambiar a string
     void mostrarLista() const;
     void reproducir(bool aleatoria) const;
+    void establecerCancionesPropias(std::string* nuevosIds, int numNuevos);
     bool agregarLista(ListaFavoritos* otra);
     // Sobrecarga de operadores
     ListaFavoritos operator+(const ListaFavoritos &otra) const;
@@ -35,6 +36,9 @@ public:
     const ListaFavoritos* getListaSeguida() const { return listaSeguida; }
     void setListaSeguida(ListaFavoritos* otraLista) { listaSeguida = otraLista; }
     int getNumCanciones() const;
+    std::string* getListaCompletaDeIds(int& totalCanciones) const;
+    void combinarListas(const ListaFavoritos* otra);
+    void eliminarCancionesDe(const ListaFavoritos* otra);
     const std::string* getCancionesIds() const {  // Cambiar a string*
         const ListaFavoritos* lista = obtenerListaExponer();
         return lista->cancionesIds;

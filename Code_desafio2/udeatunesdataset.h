@@ -129,7 +129,7 @@ static size_t getPeakMemoryUsageKB();
     // ==============================
     Cancion* buscarCancion(const std::string& id) const;
     Cancion* reproducirCancionAleatoria(Usuarios* usuario);
-
+Usuarios* buscarUsuario(const std::string& nickname);
     void reproducirListaFavoritos(Usuarios* usuario, bool aleatoria);
     void menuFavoritosPremium(Usuarios* usuario);
     void iniciarSesionYReproducir();

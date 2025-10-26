@@ -9,8 +9,7 @@ int main() {
     }
     dataset.iniciarSesionYReproducir();
     dataset.guardarListasDeFavoritos("listadefavoritos.txt");
-
-    cout << "Número de iteraciones total: " << *UdeATunesDataset::iteraciones << endl;
-   cout << "Pico de memoria utilizada: " << UdeATunesDataset::getPeakMemoryUsageKB() << " KB\n";
+    cout << "numero de iteraciones total: " << *UdeATunesDataset::iteraciones << endl;
+   cout << "total de memoria utilizada: " << UdeATunesDataset::getPeakMemoryUsageKB() << " KB\n";
     return 0;
 }
