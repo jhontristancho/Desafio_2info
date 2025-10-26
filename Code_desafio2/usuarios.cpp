@@ -8,29 +8,25 @@ Usuarios::Usuarios()
     : nickname(""), tipoMembresia(TIPO_STANDARD), ciudad(""), pais(""),
     fechaInscripcion(""), contadorReproducciones(0),
     posHistorial(0), numHistorial(0),
-    listaFavoritos()  // ✅ INICIALIZAR listaFavoritos
+    listaFavoritos()//inicializ la lista de favortio del usuario
 {
     historialReproduccion = new std::string[MAX_HISTORIAL];
     for(int i=0; i < MAX_HISTORIAL; ++i) {
         historialReproduccion[i] = "";
     }
 }
-
 Usuarios::Usuarios(const std::string& nick, int tipo, const std::string& ciu,
                    const std::string& p, const std::string& fecha)
     : nickname(nick), tipoMembresia(tipo), ciudad(ciu), pais(p),
     fechaInscripcion(fecha), contadorReproducciones(0),
     posHistorial(0), numHistorial(0),
-    listaFavoritos()  // ✅ INICIALIZAR listaFavoritos
+    listaFavoritos()
 {
     historialReproduccion = new std::string[MAX_HISTORIAL];
     for(int i=0; i < MAX_HISTORIAL; ++i) {
         historialReproduccion[i] = "";
     }
 }
-
-// Constructor de copia - ya está bien
-// En usuarios.cpp - Constructor de copia
 Usuarios::Usuarios(const Usuarios& u)
     : nickname(u.nickname), tipoMembresia(u.tipoMembresia),
     ciudad(u.ciudad), pais(u.pais),
@@ -43,13 +39,11 @@ Usuarios::Usuarios(const Usuarios& u)
         historialReproduccion[i] = u.historialReproduccion[i];
     }
 }
-// Operador de asignación
 Usuarios& Usuarios::operator=(const Usuarios& u) {
     int contador=0;
     if (this == &u) {
         return *this;
     }
-
     nickname = u.nickname;
     tipoMembresia = u.tipoMembresia;
     ciudad = u.ciudad;
@@ -60,8 +54,6 @@ Usuarios& Usuarios::operator=(const Usuarios& u) {
     numHistorial = u.numHistorial;
 
     listaFavoritos = u.listaFavoritos;
-
-    // ✅ CAMBIAR: re-asignar string*
     delete[] historialReproduccion;
     historialReproduccion = new std::string[MAX_HISTORIAL];
     for (int i = 0; i < MAX_HISTORIAL; ++i) {
@@ -105,7 +97,7 @@ void Usuarios::registrarReproduccion(Cancion* c) {
 // ✅ CAMBIAR: getCancionAnterior devuelve string*
 std::string* Usuarios::getCancionAnterior() {
     if (tipoMembresia == TIPO_STANDARD) {
-        cout << "Usuarios Standard no pueden retroceder canciones." << endl;
+        cout << "Usuarios estandar no pueden retroceder canciones." << endl;
         return nullptr;
     }
     if (numHistorial == 0) {
@@ -127,7 +119,6 @@ int Usuarios::getCalidadAudio() const {
         return 128;
     }
 }
-
 bool Usuarios::debeMostrarPublicidad() {
     return (tipoMembresia == TIPO_STANDARD &&
             contadorReproducciones > 0 &&
@@ -161,33 +152,24 @@ bool Usuarios::seguirUsuario(Usuarios* otroUsuario) {
 // Los métodos cargarFavoritos... y mostrarInfo permanecen igual
 bool Usuarios::cargarFavoritosDesdeString(const std::string& idsCadena) {
     int contador=0;
-    std::cout << "[DEBUG] Iniciando carga de favoritos para: " << nickname << std::endl;
     if (idsCadena.empty()) {
-        std::cout << "[DEBUG] Cadena vacía" << std::endl;
         return false;
     }
     std::stringstream ss(idsCadena);
     std::string idStr;
     int agregadas = 0;
-    std::cout << "[DEBUG] IDs a procesar: " << idsCadena << std::endl;
     while (std::getline(ss, idStr, ',')) {
         ++contador;
-        std::cout << "[DEBUG] Procesando ID: '" << idStr << "'" << std::endl;
         if (!idStr.empty()) {
-            std::cout << "[DEBUG] Llamando a agregarCancion..." << std::endl;
             if (listaFavoritos.agregarCancion(idStr)) {
                 agregadas++;
-                std::cout << "[DEBUG] Canción agregada exitosamente" << std::endl;
             } else {
-                std::cout << "[DEBUG] No se pudo agregar la canción" << std::endl;
             }
         }
     }
 
     if (agregadas > 0) {
-        std::cout << "[INFO] " << agregadas << " canciones cargadas para '" << nickname << "'." << std::endl;
     } else {
-        std::cout << "[DEBUG] No se agregaron canciones" << std::endl;
     }
     *UdeATunesDataset::iteraciones += contador;
     return agregadas > 0;
@@ -200,34 +182,29 @@ const ListaFavoritos* Usuarios::getListaSeguida() const {
 }
 bool Usuarios::seguirListaFavoritos(const ListaFavoritos* listaOtra) {
     if (this->tipoMembresia != TIPO_PREMIUM) {
-        cout << "[ERROR] Solo los usuarios Premium pueden seguir listas." << endl;
+        cout << "Solo los usuarios Premium pueden seguir listas." << endl;
         return false;
     }
 
     if (!listaOtra) {
-        cout << "⚠️ La lista a seguir no existe.\n";
+        cout << "La lista a seguir no existe.\n";
         return false;
     }
 
     // Evitar seguir la propia lista
     if (listaOtra == &this->listaFavoritos) {
-        cout << "[ERROR] No puedes seguir tu propia lista." << endl;
+        cout << "No puedes seguir tu propia lista." << endl;
         return false;
     }
-
-    // ✅ Combinar ambas listas (sin duplicar canciones)
     ListaFavoritos nuevaLista = this->listaFavoritos + *listaOtra;
     this->listaFavoritos = nuevaLista;
-
-    cout << "👥 Has seguido correctamente la lista. "
+    cout << "Has seguido correctamente la lista. "
          << "Ahora tu lista contiene " << this->listaFavoritos.getNumCanciones()
          << " canciones (incluidas las de la lista seguida)." << endl;
-
     return true;
 }
-
 void Usuarios::mostrarInfo(const UdeATunesDataset* dataset) const {
-    cout << "--- Perfil de Usuario ---\n";
+    cout << "Perfil de Usuario"<<endl;
     cout << "Reproducciones: " << contadorReproducciones << "\n";
     cout << "Mi lista de favoritos:\n";
     listaFavoritos.mostrarLista(dataset); // muestra delegada si listaSeguida está activa
@@ -237,11 +214,9 @@ void Usuarios::mostrarInfo(const UdeATunesDataset* dataset) const {
     ListaFavoritos copia = listaFavoritos; // usa operator= o constructor copia
     copia.setListaSeguida(nullptr); // asegurar que muestra su propia lista
     copia.mostrarLista(dataset);
-
     if (listaFavoritos.getListaSeguida() != nullptr) {
         cout << "\nActualmente siguiendo la lista de otro usuario. Para dejar de seguir use la opción correspondiente.\n";
     }
-
     cout << "-------------------------\n";
 }
 bool Usuarios::dejarDeSeguir() {

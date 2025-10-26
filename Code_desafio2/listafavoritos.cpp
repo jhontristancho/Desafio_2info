@@ -49,7 +49,6 @@ bool ListaFavoritos::agregarCancion(const string& idCancion) {
     }
     cancionesIds[numCanciones] = idCancion;
     numCanciones++;
-cout << "la cancion " << idCancion << " se agrego a su lista" <<endl;
     *UdeATunesDataset::iteraciones+=contador;
     return true;
 }

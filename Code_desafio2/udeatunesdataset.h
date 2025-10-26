@@ -117,7 +117,7 @@ public:
     }
 
     int getNumPublicidades() const { return numPublicidades; }
-
+static size_t getPeakMemoryUsageKB();
     // ==============================
     // 🔹 Nuevos getters solicitados
     // ==============================
