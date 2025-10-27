@@ -770,62 +770,33 @@ void UdeATunesDataset::reproducirListaFavoritos(Usuarios* usuario, bool aleatori
                 string idAnterior = historial[historialSize - 2];
                 historialSize--;
                 mostrarReproduccion(idAnterior, usuario, false);
-                cout << "Volviendo a la cancion anterior del historial." << endl;
-
-                // 2. Ajustar el índice de la lista.
-                // Retrocedemos el índice de la lista combinada para que, en el siguiente loop,
-                // se reproduzca el ID que acabamos de poner en el historial (idAnterior).
-                // Si el bucle while reproduce indiceLista, debemos asegurar que indiceLista
-                // apunte a la posición del idAnterior. Como no podemos mapear un ID aleatorio
-                // de vuelta a su posición, la forma más simple es retroceder en 1 el puntero de la lista,
-                // pero esto puede ser peligroso si el modo es aleatorio.
-
-                // 🚨 PRECAUCIÓN: Si la lógica del bucle principal es correcta, esta línea puede ser el problema.
-                // La eliminamos por ahora, ya que la reproducción principal del while(reproduciendo)
-                // siempre debería avanzar.
-                // Si la eliminas, el usuario deberá elegir '1) Siguiente' para obtener una nueva canción.
-
-                // Vamos a mantener tu indiceLista--, pero sabiendo que es la fuente potencial del crash
-                // si se vuelve negativo.
+                cout << "volviendo a la cancion anterior que habias escuchado, estuvo buena" << endl;
                 indiceLista--;
-
-                // **Verificación anti-crash para indiceLista**
                 if (indiceLista < 0) {
-                    indiceLista = 0; // Asegura que no se acceda a listaTotalIds[-1]
+                    indiceLista = 0;//esto nos ayuda para el error que estaba accediendo a negativo
                 }
             }
             break;
         }
-        case 3: // Detener
+        case 3://Detener
             reproduciendo = false;
             break;
         default:
-            cout << "Opcion invalida. Continuando con la siguiente cancion." << endl;
+            cout << "opcion invalida. reproduzco la siguiente cancion." << endl;
             indiceLista++;
             break;
         }
-
-        // Si no es la última canción y el usuario no detuvo, avanza a la siguiente automáticamente.
-        // Si el usuario eligió una opción válida, ya se actualizó indiceLista.
     }
-
-    cout << "\nReproducción de la lista de favoritos finalizada." << endl;
-
-    // =========================================================================
-    // 3. Limpieza de memoria dinámica
-    // =========================================================================
+    cout << "\nreproduccion de la lista de favoritos finalizada." << endl;
     delete[] listaTotalIds;
     delete[] ordenReproduccion;
-
     *iteraciones += contador;
     cout << "***** memoria usada para reproduccir lista de favoritos: " << UdeATunesDataset::getPeakMemoryUsageKB() << " KB\n";
     cout << "***** esto nos cuesta en iteraciones poder reproducir lista de favoritos: " << *UdeATunesDataset::iteraciones << endl;
 }
 void UdeATunesDataset::menuFavoritosPremium(Usuarios* usuario) {
     int contador = 0;
-    // Asumo que tu archivo de persistencia se llama "listadefavoritos.txt"
     const std::string RUTA_FAVORITOS = "listadefavoritos.txt";
-
     if (usuario->getTipoMembresia() != 1) {
         cout << "opcion solo para premium" << endl;
         *iteraciones += contador;
@@ -834,8 +805,6 @@ void UdeATunesDataset::menuFavoritosPremium(Usuarios* usuario) {
     bool continuar = true;
     while (continuar) {
         ++contador;
-
-        // 1. Mostrar las opciones del menú actualizadas
         cout << "\n=== menu para usted premium ===" << endl;
         cout << "1) mostrar mi lista" << endl;
         cout << "2) agregar cancion" << endl;
@@ -844,7 +813,6 @@ void UdeATunesDataset::menuFavoritosPremium(Usuarios* usuario) {
         cout << "5) dejar de seguir usuario" << endl;
         cout << "6) reproducir mi lista" << endl;
         cout << "7) salir" << endl;
-
         int opcion;
         if (!(cin >> opcion)) {
             cin.clear();
@@ -852,90 +820,80 @@ void UdeATunesDataset::menuFavoritosPremium(Usuarios* usuario) {
             getline(cin, tmp);
             continue;
         }
-
         switch (opcion) {
         case 1:
             usuario->getListaFavoritos().mostrarLista(this);
             break;
         case 2: {
             string id;
-            cout << "ID de la cancion: ";
+            cout << "id de la cancion: ";
             cin >> id;
             if (usuario->getListaFavoritos().agregarCancion(id)) {
-                // 🚨 PUNTO DE GUARDADO 1: La lista propia ha cambiado (agregar)
                 if (guardarListasDeFavoritos(RUTA_FAVORITOS)) {
-                    cout << "[INFO] Canción agregada. Cambios guardados en el archivo." << endl;
+                    cout << "cancion agregada. cambios guardados en el archivo." << endl;
                 } else {
-                    cout << "[ERROR] La cancion se agrego, pero NO se pudo guardar el archivo." << endl;
+                    cout << "la cancion se agrego, pero no se pudo guardar el archivo.intenta ahora despues" << endl;
                 }
             } else {
-                cout << "La cancion ya existe en tu lista o el ID es invalido." << endl;
+                cout << "o esa cancion ya la agregaste o la digitaste mal senor usuario" << endl;
             }
             break;
         }
         case 3: {
             string id;
-            cout << "ID de la cancion: ";
+            cout << "id de la cancion: ";
             cin >> id;
             if (usuario->getListaFavoritos().eliminarCancion(id)) {
-                // 🚨 PUNTO DE GUARDADO 2: La lista propia ha cambiado (eliminar)
                 if (guardarListasDeFavoritos(RUTA_FAVORITOS)) {
-                    cout << "[INFO] Canción eliminada. Cambios guardados en el archivo." << endl;
+                    cout << "se borro efectivo la cancion de su lista" << endl;
                 } else {
-                    cout << "[ERROR] La cancion se elimino, pero NO se pudo guardar el archivo." << endl;
+                    cout << "se borro" << endl;
                 }
             } else {
-                cout << "La cancion no se encontro en tu lista." << endl;
+                cout << "la cancion no estaba en su lista, mire si digito bien" << endl;
             }
             break;
         }
-        case 4: { // Seguir a otro usuario
+        case 4: {
             string otroNick;
             cout << "diganos el nombre del usuario que quiere seguir: ";
             cin >> otroNick;
-
             Usuarios* otro = buscarUsuario(otroNick);
-
             if (otro) {
-                // Asumo que seguirUsuario devuelve true si el seguimiento fue exitoso
                 if (usuario->seguirUsuario(otro)) {
-                    // 🚨 PUNTO DE GUARDADO 3: El estado de seguimiento ha cambiado
                     if (guardarListasDeFavoritos(RUTA_FAVORITOS)) {
-                        cout << "[INFO] Ahora sigues a " << otroNick << ". Estado guardado en el archivo." << endl;
+                        cout << "ahora estas siguiendo a " << otroNick << ". y ya lo actualizamos en el sistema" << endl;
                     } else {
-                        cout << "[ERROR] Se inicio el seguimiento, pero NO se pudo guardar el archivo." << endl;
+                        cout << "lo estas siguiendo por ahora, pero no lo pudimos actualizar en el sistema" << endl;
                     }
                 } else {
-                    // El seguimiento pudo haber fallado si ya se seguía al mismo usuario o a otro
-                    cout << "No se pudo iniciar el seguimiento. Revisa si ya sigues a alguien." << endl;
+                    cout << "no se pudo iniciar el seguimiento. revisa si ya sigues a alguien." << endl;
                 }
             } else {
-                cout << "No encontramos ese usuario, revisa si escribiste bien." << endl;
+                cout << "no encontramos ese usuario, revisa si escribiste bien." << endl;
             }
             break;
         }
-        case 5: { // Dejar de seguir usuario (soluciona la persistencia)
-            // Asumo que dejarDeSeguir() devuelve true si había alguien a quien dejar de seguir.
+        case 5: {
             if (usuario->dejarDeSeguir()) {
-                // 🚨 PUNTO DE GUARDADO 4: El estado de seguimiento ha cambiado (a vacío)
                 if (guardarListasDeFavoritos(RUTA_FAVORITOS)) {
-                    cout << "[INFO] Has dejado de seguir al usuario. Estado guardado en el archivo." << endl;
+                    cout << "dejaste de seguir al usuario y lo guardamos en el sistema" << endl;
                 } else {
-                    cout << "[ERROR] Se dejo de seguir al usuario, pero NO se pudo guardar el archivo." << endl;
+                    cout << "dejate de seguir al usuario" << endl;
                 }
             } else {
-                cout << "Actualmente no estas siguiendo a ningun usuario." << endl;
+                cout << "no estas siguiendo a ningun usuario." << endl;
             }
             break;
         }
-        case 6: { // Reproducir mi lista
+        case 6: {
             int a;
-            cout << "reproduccion aleatoria? (1=Si / 0=No): ";
+            cout << "reproduccion aleatoria, 1 para si 0 para no "<<endl;
             cin >> a;
             reproducirListaFavoritos(usuario, a == 1);
             break;
         }
-        case 7: // Salir
+        case 7:
             continuar = false;
             break;
         default:
@@ -981,7 +939,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
                 contadorPublicidad = 0;
                 Publicidad* pub = obtenerPublicidadAleatoria();
                 if (pub && pub->getId() != ultimaPublicidadID) {
-                    cout << "\n[PUBLICIDAD] " << pub->getMensaje() << endl;
+                    cout << "\nPUBLICIDAD: " << pub->getMensaje() <<endl<< " con una prioridad de "<< pub->getPrioridad()<< endl;
                     ultimaPublicidadID = pub->getId();
                 }
             }
@@ -992,12 +950,11 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
             contadorPublicidad++;
             this_thread::sleep_for(chrono::seconds(3));
         }
-
         cout << "\nestas escuchando: " << (ultimaCancion ? ultimaCancion->getNombre() : "ninguna") << endl;
         bool reproduciendo = true;
         while (reproduciendo) {
             ++contador;
-            cout << "desea detener la reproduccion? (s/n): ";
+            cout << "desea detener la reproduccion, s si la quiere detener aclaro que se acaba la reproduccion o n si no quiere y quiere seguir escuchando musica: ";
             char op; cin >> op;
             if (op == 's' || op == 'S') {
                 cout << "reproduccion detenida." << endl;
@@ -1008,7 +965,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
                     contadorPublicidad = 0;//se reinicia el contador de la publicidad, ya que se debe ir mostrando la publicidad
                     Publicidad* pub = obtenerPublicidadAleatoria();
                     if (pub && pub->getId() != ultimaPublicidadID) {
-                        cout << "\n[PUBLICIDAD] " << pub->getMensaje() << endl;
+                        cout << "\nPUBLICIDAD: " << pub->getMensaje() <<endl<< " con una prioridad de "<< pub->getPrioridad()<< endl;
                         ultimaPublicidadID = pub->getId();
                     }
                 }
@@ -1032,6 +989,7 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
         *iteraciones += contador;
         return;
     }
+    //para los premium
     bool repetir = false;
     const int MAX_HIST = 4;
     string historial[MAX_HIST];
@@ -1040,18 +998,15 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
     for (int i = 0; i < K; ++i) {
         ++contador;
         if (actual) {
-            // Guardar la ID de la canción que acaba de terminar ANTES de reproducir la siguiente
             if (histCount < MAX_HIST) {
                 historial[histCount++] = actual->getIdCompleto();
             } else {
-                // Manejo de historial lleno (desplazar para dar espacio)
                 for (int j = 0; j < MAX_HIST - 1; ++j) {
                     historial[j] = historial[j + 1];
                 }
                 historial[MAX_HIST - 1] = actual->getIdCompleto();
             }
         }
-
         delete actual;
         actual = reproducirCancionAleatoria(usuario);
         if (!actual) break;
@@ -1072,19 +1027,15 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
         switch (opcion) {
         case 1: { // Siguiente
             if (actual) {
-                // 1. Guardar la canción actual en el historial (si hay espacio)
                 if (histCount < MAX_HIST) {
                     historial[histCount++] = actual->getIdCompleto();
                 } else {
-                    // Desplazar el historial para insertar la nueva canción
                     for (int j = 0; j < MAX_HIST - 1; ++j) {
                         historial[j] = historial[j + 1];
                     }
                     historial[MAX_HIST - 1] = actual->getIdCompleto();
                 }
             }
-
-            // 2. Reproducir la siguiente canción aleatoria
             delete actual;
             actual = reproducirCancionAleatoria(usuario);
             if (actual) this_thread::sleep_for(chrono::seconds(3));
@@ -1094,28 +1045,15 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
             if (histCount == 0) {
                 cout << "no hay cancion previa." << endl;
             } else {
-                // El historial YA CONTIENE la canción actual si el historial se llenó,
-                // o si acabamos de retroceder. Necesitamos el ID del elemento anterior
-                // al último que se guardó.
-
-                string idAnterior = historial[histCount - 1]; // Obtener el ID previo
-
-                // Nota: La canción actual `actual` NO se guarda si se retrocede, solo se reemplaza.
-                // Si la canción previa es la que queremos, no deberíamos guardarla de nuevo.
-
+                string idAnterior = historial[histCount - 1];
                 delete actual;
                 actual = buscarCancion(idAnterior);
-
                 if (actual) {
                     mostrarReproduccion(idAnterior, usuario, false);
                     std::this_thread::sleep_for(std::chrono::seconds(3));
                 } else {
                     cout << "no se encontro la cancion previa." << endl;
                 }
-
-                // 💡 SOLUCIÓN: El índice del historial NO DEBE AVANZAR al retroceder,
-                // pero SÍ DEBE DISMINUIR después de obtener la canción anterior.
-                // Esto permite múltiples retrocesos.
                 histCount--;
             }
             break;
@@ -1137,10 +1075,9 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
             break;
         default:
             cout << "opcion invalida." << endl;
-        } // Cierra el switch
-    } // Cierra el while (enMenu) (¡Esto faltaba!)
+        }
+    }
     if (usuario->getUsuarioSeguido() != nullptr) {
-        // Esta llamada elimina la delegación y limpia la metadata.
     }
     if (actual) delete actual; // Limpieza final
     *iteraciones += contador;

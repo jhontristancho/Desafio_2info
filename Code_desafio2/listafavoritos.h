@@ -12,19 +12,15 @@ private:
     ListaFavoritos* listaSeguida;
     void redimensionar(int nuevaCapacidad);
 public:
-    // Constructores y destructor
     ListaFavoritos();
     ListaFavoritos(int capacidad);
     ListaFavoritos(const ListaFavoritos &l);
     ~ListaFavoritos();
-    // Métodos principales
     bool agregarCancion(const std::string& idCancion);
-    bool eliminarCancion(const std::string& id);  // Cambiar a string
+    bool eliminarCancion(const std::string& id);
     void mostrarLista() const;
     void reproducir(bool aleatoria) const;
     bool agregarLista(ListaFavoritos* otra);
-    // Sobrecarga de operadores
-    // Getters
     const ListaFavoritos* obtenerListaExponer() const;
     int getCapacidad() const { return capacidad; }
     ListaFavoritos& operator=(const ListaFavoritos &l);
@@ -40,7 +36,7 @@ public:
     const std::string* getCancionesIdsPropias() const { return cancionesIds; }
     void combinarListas(const ListaFavoritos* otra);
     void eliminarCancionesDe(const ListaFavoritos* otra);
-    const std::string* getCancionesIds() const {  // Cambiar a string*
+    const std::string* getCancionesIds() const {
         const ListaFavoritos* lista = obtenerListaExponer();
         return lista->cancionesIds;
     }
