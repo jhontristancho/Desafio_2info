@@ -9,6 +9,7 @@ void Artista::resizeAlbumes() {
     int contador=0;
     int nuevaCapacidad = capacidadAlbumes * GROW_FACTOR;
     Album** nuevoArray = new Album*[nuevaCapacidad];
+        UdeATunesDataset::actualizarPeakMemory();
     for (int i = 0; i < numAlbumes; ++i) {
         ++contador;
         nuevoArray[i] = albumes[i];
@@ -19,19 +20,20 @@ void Artista::resizeAlbumes() {
     *UdeATunesDataset::iteraciones += contador;
 }
 Artista::Artista()
-    : idArtista(""), nombre(""), edad(0), paisOrigen("N/A"),
+    : idArtista(""), nombre(""), edad(0), paisOrigen(""),
     seguidores(0), posicionTendencia(999999),
     albumes(nullptr), numAlbumes(0), capacidadAlbumes(ARTISTA_CAPACIDAD_INICIAL) {
     albumes = new Album*[capacidadAlbumes];
+        UdeATunesDataset::actualizarPeakMemory();
 }
 Artista::Artista(string id, const std::string& nom)
-    : idArtista(id), nombre(nom), edad(0), paisOrigen("Desconocido"),
+    : idArtista(id), nombre(nom), edad(0), paisOrigen("desconocido"),
     seguidores(0), posicionTendencia(999999),
     albumes(nullptr), numAlbumes(0), capacidadAlbumes(ARTISTA_CAPACIDAD_INICIAL) {
     albumes = new Album*[capacidadAlbumes];
+        UdeATunesDataset::actualizarPeakMemory();
 }
 Artista::~Artista() {
-    // Importante: no borrar los álbumes (el dataset los gestiona)
     delete[] albumes;
 }
 Artista::Artista(const Artista& otra)
@@ -40,8 +42,9 @@ Artista::Artista(const Artista& otra)
     posicionTendencia(otra.posicionTendencia),
     numAlbumes(otra.numAlbumes), capacidadAlbumes(otra.capacidadAlbumes) {
     albumes = new Album*[capacidadAlbumes];
+        UdeATunesDataset::actualizarPeakMemory();
     for (int i = 0; i < numAlbumes; ++i) {
-        albumes[i] = otra.albumes[i]; // Copia los punteros, no los objetos
+        albumes[i] = otra.albumes[i];//este copia los puntero
     }
 }
 Artista& Artista::operator=(const Artista& otra) {//esto es para defininir el operador de igualar
@@ -57,9 +60,10 @@ Artista& Artista::operator=(const Artista& otra) {//esto es para defininir el op
         numAlbumes = otra.numAlbumes;
         capacidadAlbumes = otra.capacidadAlbumes;
         albumes = new Album*[capacidadAlbumes];
+            UdeATunesDataset::actualizarPeakMemory();
         for (int i = 0; i < numAlbumes; ++i) {
             ++contador;
-            albumes[i] = otra.albumes[i]; // Copia punteros
+            albumes[i] = otra.albumes[i];
         }
     }
     *UdeATunesDataset::iteraciones += contador;
@@ -68,7 +72,6 @@ Artista& Artista::operator=(const Artista& otra) {//esto es para defininir el op
 bool Artista::agregarAlbum(Album* a) {
     int contador=0;
     if (!a) return false;
-    //evita duplicados
     for (int i = 0; i < numAlbumes; ++i){
         ++contador;
         if (albumes[i] == a) return false;
@@ -92,7 +95,7 @@ Album* Artista::buscarAlbum(string id) const {//este lo que va a hacer es buscar
 }
 void Artista::mostrarInfo() const {
     int contador=0;
-    cout << "informacion del artista:" << endl; //esto por si en un futuro se debe implementar
+    cout << "informacion del artista:" << endl; //esto por si en un futuro se debe implementar, ais que por ahora no re
     cout << "id: " << idArtista << endl;
     cout << "nombre: " << nombre << endl;
     cout << "pais: " << paisOrigen << endl;

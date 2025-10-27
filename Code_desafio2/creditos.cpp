@@ -2,6 +2,7 @@
 #include <iostream>
 #include <udeatunesdataset.h>
 using namespace std;
+//recordemos que esto es mas pesado en futuro
 Creditos::Creditos()
     : productores(nullptr), numProductores(0),
     musicos(nullptr), numMusicos(0),
@@ -34,7 +35,7 @@ void Creditos::setProductores(const Colaborador* prod, int num) {
     if (num > 0 && prod != nullptr) {
         productores = new Colaborador[num];
         for (int i = 0; i < num; ++i) {
-            productores[i] = prod[i]; //copia del objeto colaborador
+            productores[i] = prod[i];
         }
     }
     numProductores = num;

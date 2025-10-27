@@ -60,7 +60,6 @@ private:
 
     void obtenerSubCampos(const std::string& campo, char delimitador, std::string*& resultados, int& numResultados) const;
     float parseDuracion(const std::string& duracionStr) const;
-
     // ==============================
     // 🔹 Carga de datos
     // ==============================
@@ -70,7 +69,7 @@ private:
     bool cargarAlbumesYCanciones();
     bool cargarPublicidades();
     bool cargarPublicidadesPorDefecto();
-    bool cargarListasDeFavoritos(const std::string& rutaArchivo);
+    bool cargarListasDeFavoritos(const std::string& rutaArchivo2);
 
     // ==============================
     // 🔹 Procesamiento de datos
@@ -86,6 +85,7 @@ private:
 
 public:
     static long* iteraciones;
+        static size_t peakMemoryUsage;
     // ==============================
     // 🔹 Constructor y destructor
     // ==============================
@@ -97,8 +97,7 @@ public:
     // ==============================
     bool cargarDatos();
     static std::string* guardarDinamico(const std::string& nombreArchivo, int& numLineas, int& capacidadFinal, int capacidadInicial = 10);
-    bool guardarListasDeFavoritos(const std::string& rutaArchivo) const;
-
+    bool guardarListasDeFavoritos(const std::string& rutaArchivo2);
     // ==============================
     // 🔹 Acceso general
     // ==============================
@@ -115,9 +114,10 @@ public:
     Usuarios* getUsuarioAt(int idx) const {
         return (idx >= 0 && idx < numUsuarios) ? &usuarios[idx] : nullptr;
     }
-
     int getNumPublicidades() const { return numPublicidades; }
-static size_t getPeakMemoryUsageKB();
+    static void actualizarPeakMemory();
+    static size_t getPeakMemoryUsageKB();
+    static size_t getMemoryUsageKB();
     // ==============================
     // 🔹 Nuevos getters solicitados
     // ==============================

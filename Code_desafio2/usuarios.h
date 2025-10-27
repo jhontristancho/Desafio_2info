@@ -1,10 +1,8 @@
 #ifndef USUARIOS_H
 #define USUARIOS_H
-
 #include <string>
 #include "ListaFavoritos.h"
 #include "Cancion.h"
-
 const int TIPO_STANDARD = 0;
 const int TIPO_PREMIUM = 1;
 const int MAX_HISTORIAL = 6;
@@ -76,6 +74,9 @@ public:
     void clearNicknameSeguidoTemp() {
         this->nicknameSeguidoTemp.clear();
     }
+    std::string getCancionesPropiasComoString() const;
+    std::string getNicknameSeguido() const;
+    void establecerSeguimiento(Usuarios* otroUsuario);
     bool cargarFavoritosDesdeString(const std::string& idsCadena);
     bool cargarFavoritosDesdeArchivo(const std::string& rutaArchivo);
     void mostrarInfo(const UdeATunesDataset* dataset) const;

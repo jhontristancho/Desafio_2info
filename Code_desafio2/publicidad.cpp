@@ -1,4 +1,5 @@
 #include "publicidad.h"
+#include "udeatunesdataset.h"
 #include <iostream>
 #include <cstring>
 using namespace std;
@@ -57,6 +58,7 @@ void Publicidad::setMensaje(const char* m) {
     }
     delete[] mensaje;
     mensaje = new char[longitud + 1];
+    UdeATunesDataset::actualizarPeakMemory();
     strncpy(this->mensaje, mensaje, strlen(mensaje));
     this->mensaje[strlen(mensaje)] = '\0';
 }
@@ -70,7 +72,7 @@ void Publicidad::setPrioridad(int p) {
     prioridad = p;
 }
 void Publicidad::mostrarPublicidad() const {
-    cout << "Publicidad [" << categoria << " - Prioridad: " << prioridad << endl;
+    cout << "publicidad " << categoria << " - Prioridad: " << prioridad << endl;
     cout << "   " << mensaje << endl;
    cout << "========================================" << std::endl;
 }

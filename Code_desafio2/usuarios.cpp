@@ -38,6 +38,7 @@ Usuarios::Usuarios(const Usuarios& u)
 {
     // 🏆 CORRECCIÓN CLAVE 2: Copia profunda de historialReproduccion
     this->historialReproduccion = new std::string[MAX_HISTORIAL];
+    UdeATunesDataset::actualizarPeakMemory();
     for(int i = 0; i < MAX_HISTORIAL; ++i) {
         this->historialReproduccion[i] = u.historialReproduccion[i];
     }
@@ -69,6 +70,7 @@ Usuarios& Usuarios::operator=(const Usuarios& u) {
     // 4. Copia profunda del Historial
     delete[] historialReproduccion;
     historialReproduccion = new std::string[MAX_HISTORIAL];
+    UdeATunesDataset::actualizarPeakMemory();
     for (int i = 0; i < MAX_HISTORIAL; ++i) {
         ++contador;
         historialReproduccion[i] = u.historialReproduccion[i];
@@ -176,6 +178,7 @@ bool Usuarios::cargarFavoritosDesdeString(const std::string& idsCadena) {
 
     // --- 2. Asignar memoria dinámica para IDs temporales ---
     std::string* idsCargados = new std::string[numIds];
+    UdeATunesDataset::actualizarPeakMemory();
     int idx = 0;
 
     // --- 3. Parseo manual sin STL containers (usando find/substr) ---
@@ -251,4 +254,31 @@ bool Usuarios::dejarDeSeguir() {
     cout << "[INFO] Has dejado de seguir la lista de '" << nicknameSeguido << "'." << endl;
 
     return true;
+}
+std::string Usuarios::getCancionesPropiasComoString() const {
+    int numPropias = listaFavoritos.getNumCancionesPropias();
+    const std::string* idsPropias = listaFavoritos.getCancionesIdsPropias();
+
+    if (numPropias == 0) {
+        return ""; // Sin canciones
+    }
+
+    std::string resultado = "";
+    for (int i = 0; i < numPropias; ++i) {
+        if (i > 0) resultado += ",";
+        resultado += idsPropias[i];
+    }
+
+    return resultado;
+}
+std::string Usuarios::getNicknameSeguido() const {
+    if (usuarioSeguido != nullptr) {
+        return usuarioSeguido->getNickname();
+    }
+    return ""; // No sigue a nadie
+}
+
+void Usuarios::establecerSeguimiento(Usuarios* otroUsuario) {
+    this->usuarioSeguido = otroUsuario;
+    this->listaFavoritos.setListaSeguida(&(otroUsuario->listaFavoritos));
 }

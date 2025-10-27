@@ -8,30 +8,29 @@
 #include <random>
 #include <ctime>
 #include <windows.h>
-#include <psapi.h>//para PROCESS_MEMORY_COUNTERS
+#include <psapi.h>//este es para la que llame PROCESS_MEMORY_COUNTERS
 using namespace std::chrono_literals;
 using namespace std;
 long* UdeATunesDataset::iteraciones = new long(0);
-const int GROW_FACTOR = 2;
-const int DATASET_CAPACIDAD_INICIAL = 10;
-static size_t peakMemoryUsage = 0;
-size_t getMemoryUsageKB() {
+size_t UdeATunesDataset::peakMemoryUsage = 0;
+size_t UdeATunesDataset::getPeakMemoryUsageKB() {
+    return peakMemoryUsage;
+}
+size_t UdeATunesDataset::getMemoryUsageKB() {
     PROCESS_MEMORY_COUNTERS info;
     if (GetProcessMemoryInfo(GetCurrentProcess(), &info, sizeof(info))) {
-        // WorkingSetSize es la memoria física (RAM) que usa el proceso.
         return info.WorkingSetSize / 1024;
     }
     return 0;
 }
-void actualizarPeakMemory() {
+void UdeATunesDataset::actualizarPeakMemory() {
     size_t actual = getMemoryUsageKB();
     if (actual > peakMemoryUsage) {
         peakMemoryUsage = actual;
     }
 }
-size_t UdeATunesDataset::getPeakMemoryUsageKB() {
-    return peakMemoryUsage;
-}
+const int GROW_FACTOR = 2;
+const int DATASET_CAPACIDAD_INICIAL = 10;
 UdeATunesDataset::UdeATunesDataset()
     : artistas(new Artista[DATASET_CAPACIDAD_INICIAL]),
     numArtistas(0),
@@ -57,10 +56,9 @@ UdeATunesDataset::UdeATunesDataset()
     capacidadLineasCreditos(0),
     idsColaboradores(new long[DATASET_CAPACIDAD_INICIAL])
 {
-    srand(static_cast<unsigned>(time(nullptr)));
-    actualizarPeakMemory(); // Mide uso inicial después de las asignaciones del constructor.
+    srand(static_cast<unsigned>(time(nullptr)));//para lo aleatorio
+    actualizarPeakMemory();//ahi pra cuando utilicemos el construcror mide el uso maximo incliyedo todo
 }
-
 UdeATunesDataset::~UdeATunesDataset() {
     delete[] artistas;
     delete[] colaboradores;
@@ -71,7 +69,7 @@ UdeATunesDataset::~UdeATunesDataset() {
     delete[] lineasCreditos;
     delete[] idsColaboradores;
     delete iteraciones;
-}
+}//en cada resize vamos a ver si se esta incrementando el uso de memori
 void UdeATunesDataset::resizeArtistas() {
     int contador = 0;
     int nuevaCapacidad = capacidadArtistas * GROW_FACTOR;
@@ -83,7 +81,7 @@ void UdeATunesDataset::resizeArtistas() {
     delete[] artistas;
     artistas = nuevo;
     capacidadArtistas = nuevaCapacidad;
-    actualizarPeakMemory(); // Llama después de la nueva asignación de memoria
+    actualizarPeakMemory();
     *iteraciones += contador;
 }
 void UdeATunesDataset::resizeColaboradores() {
@@ -100,7 +98,6 @@ void UdeATunesDataset::resizeColaboradores() {
     actualizarPeakMemory();
     *iteraciones += contador;
 }
-
 void UdeATunesDataset::resizeUsuarios() {
     int contador = 0;
     int nuevaCapacidad = capacidadUsuarios * GROW_FACTOR;
@@ -115,7 +112,6 @@ void UdeATunesDataset::resizeUsuarios() {
     actualizarPeakMemory();
     *iteraciones += contador;
 }
-
 void UdeATunesDataset::resizePublicidades() {
     int contador = 0;
     int nuevaCapacidad = capacidadPublicidades * GROW_FACTOR;
@@ -145,7 +141,7 @@ void UdeATunesDataset::obtenerSubCampos(const string& campo, char delimitador, s
         if (c == delimitador) count++;
     }
     resultados = new string[count];
-    actualizarPeakMemory();//Desps de la asignacin del array de resultados
+    actualizarPeakMemory();
     size_t start = 0;
     size_t end = campo.find(delimitador);
     while (end != string::npos) {
@@ -193,7 +189,7 @@ string UdeATunesDataset::buscarLineaPorID(const string* lineas, int numLineas, c
     *iteraciones += contador;
     return "";
 }
-string* UdeATunesDataset::guardarDinamico(const string& nombreArchivo, int& numLineas, int& capacidadFinal, int capacidadInicial) {
+string* UdeATunesDataset::guardarDinamico(const string& nombreArchivo, int& numLineas, int& capacidadFinal, int capacidadInicial) {    //esto se hace varias veces en el program
     int contador = 0;
     ifstream archivo(nombreArchivo);
     if (!archivo.is_open()) {
@@ -201,11 +197,10 @@ string* UdeATunesDataset::guardarDinamico(const string& nombreArchivo, int& numL
         return nullptr;
     }
     string* lineas = new string[capacidadInicial];
-    actualizarPeakMemory();//se mide luego de la asignacion y asi pues tengo lo que en verdad se esta consumiendo
+    actualizarPeakMemory();
     string linea;
     numLineas = 0;
     int capacidad = capacidadInicial;
-
     while (getline(archivo, linea)) {
         ++contador;
         if (!linea.empty()) {
@@ -223,11 +218,9 @@ string* UdeATunesDataset::guardarDinamico(const string& nombreArchivo, int& numL
             lineas[numLineas++] = linea;
         }
     }
-
     archivo.close();
     capacidadFinal = capacidad;
     *iteraciones += contador;
-    //esto se hace varias veces en el program
     cout << "***** numero de iteraciones por ahora para guardar en los arreglos dinamicos, cargar archivos, y poder acomodar todo en los arreglos:   " << *UdeATunesDataset::iteraciones << endl;
     cout << "***** memoria usada para guardar los arreglos por ahora: " << UdeATunesDataset::getPeakMemoryUsageKB() << " KB\n";
     return lineas;
@@ -271,7 +264,6 @@ bool UdeATunesDataset::cargarPublicidades() {
     cout << "numero de iteraciones sumadas, pero ahora para poder cargar la publicidad:" << *UdeATunesDataset::iteraciones << endl;
     return true;
 }
-
 Publicidad* UdeATunesDataset::obtenerPublicidadAleatoria() {
     int contador = 0;
     if (numPublicidades == 0) {
@@ -293,8 +285,7 @@ Publicidad* UdeATunesDataset::obtenerPublicidadAleatoria() {
         ++contador;
         acumulado += publicidades[i].getPrioridad();
         if (rnd < acumulado) {
-            // evitar consecutivo
-            if (i == ultimaPublicidadMostrada && numPublicidades > 1) {
+            if (i == ultimaPublicidadMostrada && numPublicidades > 1) {//esto evita que sea consecutiva
                 int idx = (i + 1) % numPublicidades;
                 ultimaPublicidadMostrada = idx;
                 *iteraciones += contador;
@@ -309,23 +300,6 @@ Publicidad* UdeATunesDataset::obtenerPublicidadAleatoria() {
     cout << "***** ahora sumando con todo lo demas anterior esto fue lo que gaste para poner la publicidad aleatoria " << *UdeATunesDataset::iteraciones << endl;
     return &publicidades[0];
 }
-float UdeATunesDataset::parseDuracion(const string& duracionStr) const {
-    int contador = 0;
-    size_t pos = duracionStr.find(':');
-    if (pos == string::npos) {
-        *iteraciones += contador;
-        return 0.0f;
-    }
-    try {
-        int minutos = stoi(duracionStr.substr(0, pos));
-        int segundos = stoi(duracionStr.substr(pos + 1));
-        *iteraciones += contador;
-        return minutos + (segundos / 60.0f);
-    } catch (...) {
-        *iteraciones += contador;
-        return 0.0f;
-    }
-}
 bool UdeATunesDataset::cargarArtistas() {
     int contador = 0;
     string* lineasArtistas = guardarDinamico("artistas.txt", numArtistas, capacidadArtistas);
@@ -337,7 +311,7 @@ bool UdeATunesDataset::cargarArtistas() {
     for (int i = 0; i < numArtistas; ++i) {
         ++contador;
         string linea = lineasArtistas[i];
-        string idStr = obtenerCampo(linea, 0);
+        string idStr = obtenerCampo(linea, 0);//campo ya abes
         string nombre = obtenerCampo(linea, 1);
         artistas[i] = Artista(idStr, nombre);
     }
@@ -411,6 +385,23 @@ bool UdeATunesDataset::procesarCreditosParaCancion(Cancion* cancion, const strin
     cancion->getCreditos() = creditosCancion;
     return true;
 }
+float UdeATunesDataset::parseDuracion(const string& duracionStr) const {//para la duracion de la cancion
+    int contador = 0;
+    size_t pos = duracionStr.find(':');
+    if (pos == string::npos) {
+        *iteraciones += contador;
+        return 0.0f;
+    }
+    try {
+        int minutos = stoi(duracionStr.substr(0, pos));
+        int segundos = stoi(duracionStr.substr(pos + 1));
+        *iteraciones += contador;
+        return minutos + (segundos / 60.0f);
+    } catch (...) {
+        *iteraciones += contador;
+        return 0.0f;
+    }
+}
 bool UdeATunesDataset::procesarCancionesParaAlbum(Album& album, Artista* artista, const string& idAlbumCompleto) {
     int contador = 0;
     if (!artista) {
@@ -431,7 +422,7 @@ bool UdeATunesDataset::procesarCancionesParaAlbum(Album& album, Artista* artista
                 string ruta320 = obtenerCampo(lineaCancion, 4);
                 string idCreditoStr = obtenerCampo(lineaCancion, 6);
                 Cancion* nuevaCancion = new Cancion(idCancionCompleto, nombreCancion, duracion, ruta128, ruta320);
-                actualizarPeakMemory();//mide despues de la reserva
+                actualizarPeakMemory();
                 nuevaCancion->setAlbum(&album);
                 nuevaCancion->setArtista(artista);
                 if (!idCreditoStr.empty()) procesarCreditosParaCancion(nuevaCancion, idCreditoStr);
@@ -527,7 +518,6 @@ Cancion* UdeATunesDataset::buscarCancion(const std::string& id) const {//busca l
     string r128 = obtenerCampo(lineaCancion, 3);
     string r320 = obtenerCampo(lineaCancion, 4);
     float duracion = parseDuracion(durStr);
-
     Cancion* c = new Cancion(id, nom, duracion, r128, r320);
     actualizarPeakMemory();//mide a ver cuanto se le asigna a cancion
     *iteraciones += contador;
@@ -561,133 +551,77 @@ bool UdeATunesDataset::cargarUsuarios() {
             continue;
         }
     }
-
     delete[] lineasUsuarios;
     *iteraciones += contador;
     cout << "***** esto nos cuesta en iteraciones poder cargar los usuarios: " << *UdeATunesDataset::iteraciones << endl;
     cout << "***** memoria usada para poder cargar los usuarios : " << UdeATunesDataset::getPeakMemoryUsageKB() << " KB\n";
     return numUsuarios > 0;
 }
-// Asumiremos que has añadido 'string nicknameSeguidoTemp' a Usuarios.h para este fin.
-
-bool UdeATunesDataset::cargarListasDeFavoritos(const std::string& rutaArchivo) {
-    int contador = 0;
-
-    // =======================================================
-    // 💡 PASO 0: Usar guardarDinamico para cargar las líneas
-    // =======================================================
-    std::string* lineas = nullptr; // Array dinámico de líneas
-    int numLineas = 0;             // Número de líneas cargadas
-    int capacidadFinal = 0;        // Variable no usada aquí, pero requerida por guardarDinamico
-
-    // Llama a tu función de carga, que asigna memoria para 'lineas'
-    // y llena 'numLineas'. Asumo una capacidad inicial razonable (ej: 10).
-    lineas = guardarDinamico(rutaArchivo, numLineas, capacidadFinal, 10);
-
-    if (lineas == nullptr || numLineas == 0) {
-        // La función guardarDinamico ya maneja el contador si falla al abrir
-        if (*iteraciones == 0) {
-            *iteraciones += contador;
-        }
-        std::cerr << "Advertencia: No se pudo cargar el archivo de favoritos o está vacío.\n";
+bool UdeATunesDataset::cargarListasDeFavoritos(const string& rutaArchivo2) {
+    ifstream archivo(rutaArchivo2);
+    if (!archivo.is_open()) {
+        cout << "no hay archivo de favoritos"<<endl;
         return false;
     }
-    // =======================================================
-
-    // --- PASO 1: Cargar canciones PROPIAS y el nicknameSeguidoTemp ---
-    for (int i = 0; i < numLineas; ++i) {
-        ++contador;
-        std::string linea = lineas[i];
-
-        // El nuevo formato esperado es: nickname:ids_propios:nickname_seguido
-        size_t pos1 = linea.find(':');
-        size_t pos2 = linea.find(':', pos1 + 1);
-
-        if (pos1 == std::string::npos) continue;
-
-        std::string nickname = linea.substr(0, pos1);
-        std::string idsCadena = "";
-        std::string seguidoNick = "";
-
-        if (pos2 != std::string::npos) {
-            // Formato completo: user:id1,id2:seguido
-            idsCadena = linea.substr(pos1 + 1, pos2 - pos1 - 1);
-            seguidoNick = linea.substr(pos2 + 1);
-        } else {
-            // Formato antiguo o solo canciones: user:id1,id2
-            idsCadena = linea.substr(pos1 + 1);
+    string linea;//y aca para cargar las canciones propias de cada usuario
+    while (getline(archivo, linea)) {
+        if (linea.empty()) continue;
+        size_t primerDosPuntos = linea.find(':');
+        if (primerDosPuntos == string::npos) continue;
+ string nickname = linea.substr(0, primerDosPuntos);
+        size_t segundoDosPuntos = linea.find(':', primerDosPuntos + 1);
+        if (segundoDosPuntos == string::npos) continue;
+        string cancionesPropias = linea.substr(
+            primerDosPuntos + 1,
+            segundoDosPuntos - primerDosPuntos - 1
+            );
+        std::string nicknameSeguido = linea.substr(segundoDosPuntos + 1);
+        Usuarios* usuario = buscarUsuario(nickname);//y aca busccamos al otro usaurio
+        if (usuario == nullptr || usuario->getTipoMembresia() != 1) {
+            continue;
         }
-
-        Usuarios* u = buscarUsuario(nickname);
-        if (u) {
-            u->cargarFavoritosDesdeString(idsCadena);
-            if (!seguidoNick.empty()) {
-                // Almacenar temporalmente el nickname del seguido
-                u->setNicknameSeguidoTemp(seguidoNick);
-            }
-        }
+        usuario->cargarFavoritosDesdeString(cancionesPropias);
     }
-
-    // --- PASO 2: Resolver los seguimientos (El "Doble Pase") ---
-    for (int i = 0; i < numUsuarios; ++i) {
-        ++contador;
-        Usuarios& u = usuarios[i];
-
-        // Se asume que getNicknameSeguidoTemp y clearNicknameSeguidoTemp existen en Usuarios
-        if (!u.getNicknameSeguidoTemp().empty()) {
-            Usuarios* seguido = buscarUsuario(u.getNicknameSeguidoTemp());
-            if (seguido) {
-                // Usamos seguirUsuario para establecer los punteros y la delegación de la lista
-                u.seguirUsuario(seguido);
-            }
-            // Limpiar la variable temporal en cualquier caso
-            u.clearNicknameSeguidoTemp();
+    archivo.close();
+    archivo.open(rutaArchivo2);//y aca se establecen las conexiones de seguir
+    while (getline(archivo, linea)) {
+        if (linea.empty()) continue;
+        size_t primerDosPuntos = linea.find(':');
+        if (primerDosPuntos == string::npos) continue;
+  string nickname = linea.substr(0, primerDosPuntos);
+        size_t segundoDosPuntos = linea.find(':', primerDosPuntos + 1);
+        if (segundoDosPuntos == string::npos) continue;
+       string nicknameSeguido = linea.substr(segundoDosPuntos + 1);
+        if (nicknameSeguido.empty()) {
+            continue; //por si no sigue a nadi
+        }
+        Usuarios* usuario = buscarUsuario(nickname);//y se establece el seguimiento
+        Usuarios* seguido = buscarUsuario(nicknameSeguido);
+        if (usuario && seguido && usuario != seguido) {
+            usuario->establecerSeguimiento(seguido);
         }
     }
-    if (lineas) {
-        delete[] lineas;
-    }
-    *iteraciones += contador;
+    archivo.close();
     return true;
 }
-bool UdeATunesDataset::guardarListasDeFavoritos(const std::string& rutaArchivo2) const {
-    int contador = 0;
-    std::ofstream fs(rutaArchivo2);
-    if (!fs.is_open()) {
-        *iteraciones += contador;
+bool UdeATunesDataset::guardarListasDeFavoritos(const string& rutaArchivo2) {
+    ofstream archivo(rutaArchivo2);
+    if (!archivo.is_open()) {
+        cout << "no se pudo abrir el archivo para guardar la lista de favoritos"
+             << rutaArchivo2 << std::endl;
         return false;
     }
-
     for (int i = 0; i < numUsuarios; ++i) {
-        ++contador;
-        Usuarios& u = usuarios[i];
-        ListaFavoritos& lf = u.getListaFavoritos();
-
-        // 1. Escribir el nickname
-        fs << u.getNickname() << ":";
-
-        // 2. Escribir las canciones PROPIAS (asumiendo que getCancionesIds() solo da las propias)
-        const std::string* ids = lf.getCancionesIds();
-        for (int j = 0; j < lf.getNumCanciones(); ++j) {
-            ++contador;
-            if (j > 0) fs << ",";
-            fs << ids[j];
+        Usuarios* usuario = &usuarios[i];
+        if (usuario->getTipoMembresia() != 1) {//por si se llega a infliltar un estandar jajaj
+            continue;
         }
-
-        // 3. Escribir el separador para el campo de seguimiento
-        fs << ":";
-
-        // 4. Escribir el nickname del usuario seguido, si existe
-        Usuarios* seguido = u.getUsuarioSeguido(); // Asume este getter existe
-        if (seguido != nullptr) {
-            fs << seguido->getNickname();
-        }
-
-        // 5. Nueva línea
-        fs << "\n";
+        archivo << usuario->getNickname() << ":";//id1,id2,id3:nicknameSeguido
+        archivo << usuario->getCancionesPropiasComoString() << ":";
+        archivo << usuario->getNicknameSeguido();//por si no sigue a nadie
+        archivo << endl;
     }
-    fs.close();
-    *iteraciones += contador;
+    archivo.close();
     return true;
 }
 Usuarios* UdeATunesDataset::buscarUsuario(const std::string& nickname) {
@@ -719,10 +653,8 @@ void UdeATunesDataset::mostrarReproduccion(const std::string& idCancion, Usuario
     Artista* artista = getArtista(idArtistaStr);
     string rutaReproduccion;
     if (usuario && usuario->getTipoMembresia() == 1) {
-        // Usuario Premium (asumo tipo 1): Alta Calidad (rutaArchivo2)
-        rutaReproduccion = rutaArchivo2;
+        rutaReproduccion = rutaArchivo2;//la de alta calidad
     } else {
-        // Usuario Estándar (asumo tipo 0): Calidad Estándar (rutaArchivo)
         rutaReproduccion = rutaArchivo;
     }
     string nombreArtista = (artista ? artista->getNombre() : "Desconocido");
@@ -739,11 +671,12 @@ void UdeATunesDataset::mostrarReproduccion(const std::string& idCancion, Usuario
             }
         }
     }
-    if (mostrarPublicidad && usuario && usuario->debeMostrarPublicidad()){// Publicidad si corresponde
+    if (mostrarPublicidad && usuario && usuario->debeMostrarPublicidad()){
         Publicidad* pub = obtenerPublicidadAleatoria();
         if (pub) {
             cout << "\nPUBLICIDAD:     " << endl;
             cout << pub->getMensaje() << endl;
+            cout<< "prioridad de la publicidad: "<<pub->getPrioridad()<<endl;
         }
     }
     *iteraciones += contador;
@@ -782,100 +715,60 @@ Cancion* UdeATunesDataset::reproducirCancionAleatoria(Usuarios* usuario){//esto 
 void UdeATunesDataset::reproducirListaFavoritos(Usuarios* usuario, bool aleatoria) {
     int contador = 0;
     ListaFavoritos* lista = &usuario->getListaFavoritos();
-
-    // =========================================================================
-    // 1. Obtener la lista COMBINADA (Propia + Seguida)
-    // =========================================================================
     int totalCanciones = 0;
-    // Llama al método que combina las IDs propias y las seguidas en un array dinámico
-    std::string* listaTotalIds = lista->getListaCompletaDeIds(totalCanciones);
-
+    std::string* listaTotalIds = lista->getListaCompletaDeIds(totalCanciones);//este metodo las unia
     if (totalCanciones == 0 || listaTotalIds == nullptr) {
         cout << "La lista de favoritos esta vacia, agregue canciones." << endl;
         *iteraciones += contador;
         return;
     }
-
-    cout << "\nReproduciendo " << totalCanciones << " canciones de la lista de favoritos ";
+    cout << "\nreproduciendo " << totalCanciones << " canciones de la lista de favoritos ";
     cout << (aleatoria ? "en modo aleatorio." : "en orden.") << endl;
-
-    // Crear un array de índices para el orden de reproducción (original o aleatorio)
     int* ordenReproduccion = new int[totalCanciones];
     for (int i = 0; i < totalCanciones; ++i) {
         ordenReproduccion[i] = i;
     }
-
     if (aleatoria) {
-        // Mezclar los índices (Fisher-Yates)
         for (int i = totalCanciones - 1; i > 0; --i) {
             ++contador;
-            int j = rand() % (i + 1);
+            int j = rand() % (i + 1);//por si es aleatoria
             std::swap(ordenReproduccion[i], ordenReproduccion[j]);
         }
     }
-
-    // =========================================================================
-    // 2. Bucle de Reproducción Controlado
-    // =========================================================================
     bool reproduciendo = true;
-    int indiceLista = 0; // Índice para iterar sobre el array 'ordenReproduccion'
+    int indiceLista = 0;
     const int M = 6;
-    std::string historial[M]; // Guarda los IDs para "Anterior"
+    string historial[M];//para la anterior
     int historialSize = 0;
-
     while (reproduciendo && indiceLista < totalCanciones) {
         ++contador;
-
-        // El ID es el valor en el índice del array de ordenación
-        std::string id = listaTotalIds[ordenReproduccion[indiceLista]];
-
-        // 2a. Reproducir la canción actual y medir el tiempo
-        mostrarReproduccion(id, usuario, false); // Asumo que esto ya imprime info
-
-        // Guardar en el historial antes de avanzar
+        string id = listaTotalIds[ordenReproduccion[indiceLista]];
+        mostrarReproduccion(id, usuario, false);
         if (historialSize < M) historial[historialSize++] = id;
-        else { // Si el historial está lleno, desplazar
+        else { // si el historial esta lleno, desplazar
             for (int i = 0; i < M - 1; ++i) historial[i] = historial[i + 1];
             historial[M - 1] = id;
         }
-
-        cout << endl << "Opciones (Tiempo restante para siguiente: 3s): 1) Siguiente  2) Anterior  3) Detener" << endl;
-
-        // Simulación de espera por interacción del usuario (no bloqueante idealmente, pero usamos un simple cin)
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
+        cout << endl << "elije : 1) siguiente  2) anterior  3) detener" << endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));//ahi si le permitimos al que este esuchando que se dmore lo que quiera
         int op = 0;
-
-        // Intentar leer la opción sin esperar infinitamente (opcional: mejor usar hilos o ncurses, pero simplificado aquí)
-        // Por la limitación de consola simple, tendremos que forzar una pausa o pedir input.
-        // Nos apegamos a tu lógica original de input forzado, pero lo reestructuramos.
-
-        // Pedir input después de una pausa (simulando que el usuario puede elegir rápido)
-        cout << "Ingrese opcion (o 0 para seguir): ";
-        if (!(std::cin >> op)) {
-            // Si el input falla o no se ingresa nada, limpiamos y asumimos 'Siguiente' si el bucle lo permite
+        cout << "ingrese opcion: ";
+        if (!(std::cin >> op)) {//por si no ingresa nada en ese tiempo
             std::cin.clear();
-            std::string tmp;
-            std::getline(std::cin, tmp);
-            op = 1; // Avanzar automáticamente a la siguiente (comportamiento por defecto)
+            string tmp;
+            getline(std::cin, tmp);
+            op = 1;//este por defecto porque si
         }
-
         switch (op) {
-        case 1: // Siguiente (Avanzar al siguiente índice en el array de ordenación)
+        case 1:
             indiceLista++;
             break;
-        case 2: { // Anterior (Usar el historial)
+        case 2: {
             if (historialSize <= 1) {
-                // Si hay 0 o 1 canciones, no hay una "anterior" disponible.
-                cout << "No hay cancion anterior en el historial. Ya estás en la primera." << endl;
+                cout << "no hay cancion anterior en el historial. ya andas en la primera." << endl;
             } else {
-                // La canción anterior es el penúltimo elemento. (Ej: size 3 -> índice 1)
-                std::string idAnterior = historial[historialSize - 2];
-
-                // 1. **IMPORTANTE:** Reducir el historial en 1.
-                // Esto elimina la ID de la canción actual del historial (la última).
-                historialSize--; // Ahora size es 2 (la canción anterior es el nuevo final)
-
+                string idAnterior = historial[historialSize - 2];
+                historialSize--;
                 mostrarReproduccion(idAnterior, usuario, false);
                 cout << "Volviendo a la cancion anterior del historial." << endl;
 
@@ -1248,7 +1141,6 @@ void UdeATunesDataset::iniciarSesionYReproducir() {
     } // Cierra el while (enMenu) (¡Esto faltaba!)
     if (usuario->getUsuarioSeguido() != nullptr) {
         // Esta llamada elimina la delegación y limpia la metadata.
-        usuario->dejarDeSeguir();
     }
     if (actual) delete actual; // Limpieza final
     *iteraciones += contador;

@@ -1,5 +1,6 @@
 #include "Cancion.h"
 #include <iostream>
+#include "udeatunesdataset.h"
 using namespace std;
 Cancion::Cancion(const std::string& id, const std::string& nom, float dur,
                  const std::string& r128, const std::string& r320)
@@ -15,7 +16,7 @@ Cancion::Cancion(const std::string& id, const std::string& nom, float dur,
 Cancion::Cancion()//comstructor por defecto
     : idCompleto(""), nombre(""), duracion(0.0f), reproducciones(0),
     ruta128(""), ruta320(""), artista(nullptr), album(nullptr) {}
-//operador de comparación
+//para definir la =
 bool Cancion::operator==(const Cancion& otra) const {
     return this->idCompleto == otra.idCompleto;
 }
@@ -24,5 +25,5 @@ void Cancion::reproducir(int calidad) {
     cout << "reproduciendo " << nombre << " a "<<calidad<<"kbps desde: "<<ruta<<endl;
     reproducciones++;
 }
-//los getters ya están implementados en el el .h
+//los getters ya estan implementados en el el .h
 //se determina como una clase para futuras implememtaciones yq esto es pnsado a futuro

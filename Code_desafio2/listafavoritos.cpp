@@ -1,6 +1,6 @@
 #include "ListaFavoritos.h"
 #include <iostream>
-#include "UdeATunesDataset.h"
+#include <udeatunesdataset.h>
 #include "Cancion.h"
 #include <cstdlib>
 #include <ctime>
@@ -17,7 +17,7 @@ ListaFavoritos::ListaFavoritos(const ListaFavoritos &l)
         cancionesIds[i] = l.cancionesIds[i];
     }
 }
-//destrto
+//destrtor
 ListaFavoritos::~ListaFavoritos() {
     delete[] cancionesIds;
 }
@@ -34,7 +34,6 @@ bool ListaFavoritos::contieneCancion(const std::string& id) const {
     *UdeATunesDataset::iteraciones += contador;
     return false;
 }
-// En ListaFavoritos.cpp
 bool ListaFavoritos::agregarCancion(const string& idCancion) {
     int contador=0;
     if (contieneCancion(idCancion)) {
@@ -63,23 +62,24 @@ bool ListaFavoritos::eliminarCancion(const std::string& id) {
                 cancionesIds[j] = cancionesIds[j + 1];
             }
             numCanciones--;
-            cout << "la cancion" << id << " eliminada de favoritos" << std::endl;
+            cout << "la cancion con el id de " << id << " fue eliminada de favoritos" << std::endl;
             *UdeATunesDataset::iteraciones += contador;
             return true;
         }
     }
-    cout << "la cancion  " << id << " no fue encontrada en su lista de favorito" << std::endl;
+    cout << "la cancion  " << id << " no fue encontrada en la lista de favorito" << std::endl;
     *UdeATunesDataset::iteraciones += contador;
     return false;
 }
 void ListaFavoritos::redimensionar(int nuevaCapacidad) {
     int contador=0;
-    std::string* nuevoArray = new std::string[nuevaCapacidad];  // Cambiar a string*
+    std::string* nuevoArray = new std::string[nuevaCapacidad];
+UdeATunesDataset::actualizarPeakMemory();
     for (int i = 0; i < numCanciones; i++) {
         ++contador;
         nuevoArray[i] = cancionesIds[i];
     }
-    delete[] cancionesIds;//para evitar fuga
+    delete[] cancionesIds;//para evitar lafuga
     cancionesIds = nuevoArray;
     capacidad = nuevaCapacidad;
     *UdeATunesDataset::iteraciones += contador;
@@ -96,36 +96,27 @@ void ListaFavoritos::mostrarLista() const {//desplieque
     }
     *UdeATunesDataset::iteraciones += contador;
 }
-
-// Actualizar mostrarLista con dataset
 void ListaFavoritos::mostrarLista(const UdeATunesDataset* dataset) const {//ARREGLARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
     int contador=0;
     const ListaFavoritos* listaPropia = this;
     const ListaFavoritos* listaSeg = listaSeguida;
-    // Combinar si sigue a alguien
-    ListaFavoritos listaFinal = *listaPropia;
+    ListaFavoritos listaFinal = *listaPropia;//aca si sigue a alguien se combina utilizndo ese puntero
     if (listaSeg) {
         listaFinal = listaFinal + *listaSeg;
-        cout << "LISTA DE FAVORITOS COMBINADA ("
-             << listaFinal.getNumCanciones() << " canciones, incluyendo seguidas)"
-             << endl;
+        cout << "tu lista de favoritos incluyendo la del usuario al que sigues  ("<< listaFinal.getNumCanciones() << " canciones, muy buen gusto.)"<< endl;
     } else {
-        cout << "LISTA DE FAVORITOS (" << listaFinal.getNumCanciones() << " canciones)"
+        cout << "tu lista de favoritos (" << listaFinal.getNumCanciones() << " canciones, que buen gusto )"
              << endl;
     }
-
     if (listaFinal.getNumCanciones() == 0) {
-        cout << "    (Lista vacía)" << endl;
+        cout << "tienes la lista vacia, agrega canciones y escucha se que te van a gustar" << endl;
         return;
     }
-
     const std::string* canciones = listaFinal.getCancionesIds();
-
     for (int i = 0; i < listaFinal.getNumCanciones(); ++i) {
         ++contador;
         std::string idCancion = canciones[i];
         std::string nombreCancion = "Desconocida";
-
         if (dataset) {
             std::string linea = dataset->buscarLineaPorID(
                 dataset->getLineasCanciones(),
@@ -137,21 +128,18 @@ void ListaFavoritos::mostrarLista(const UdeATunesDataset* dataset) const {//ARRE
                 nombreCancion = dataset->obtenerCampo(linea, 1);
             }
         }
-
         cout << "    " << (i + 1) << ". " << nombreCancion
-             << " (ID: " << idCancion << ")" << endl;
+             << " ID: " << idCancion << ")" << endl;
     }
     *UdeATunesDataset::iteraciones += contador;
 }
 ListaFavoritos ListaFavoritos::operator+(const ListaFavoritos &otra) const {
-    int contador=0;
+    int contador=0;//esto principalmente se va utilizar pa la logica de la lista a otro usuario que sigue
     ListaFavoritos nuevaLista(this->numCanciones + otra.numCanciones);
-
     for (int i = 0; i < this->numCanciones; i++) {
         ++contador;
         nuevaLista.agregarCancion(this->cancionesIds[i]);
     }
-
     for (int i = 0; i < otra.numCanciones; i++) {
         ++contador;
         nuevaLista.agregarCancion(otra.cancionesIds[i]);
@@ -170,107 +158,80 @@ ListaFavoritos& ListaFavoritos::operator=(const ListaFavoritos &l){
     if (this == &l) {
         return *this;
     }
-
-    // 1. Liberar lo antiguo
-    if (cancionesIds != nullptr) { // Siempre verifica antes de liberar
-        delete[] cancionesIds;
+    if (cancionesIds != nullptr) {
+        delete[] cancionesIds;//por si acaso
     }
-
-    // 2. Copiar metadata
     capacidad = l.capacidad;
     numCanciones = l.numCanciones;
-
-    // 3. ¡CORRECCIÓN CLAVE! Neutralizar la delegación.
-    // El objeto recién asignado debe empezar sin delegación activa.
-    this->listaSeguida = nullptr;
-
-    // 4. Reservar nueva memoria
-    if (numCanciones > 0) {
+    this->listaSeguida = nullptr;//por si apuntaba a alguna basura
+    if (capacidad > 0) { //siempre se reserva memoria, asa esa la lista est vacia
         cancionesIds = new std::string[capacidad];
-
-        // 5. Copiar los datos (Deep Copy)
+UdeATunesDataset::actualizarPeakMemory();
         for (int i = 0; i < numCanciones; i++) {
             ++contador;
             cancionesIds[i] = l.cancionesIds[i];
         }
-    } else {
-        cancionesIds = nullptr;
+    } else {//si es 0 asigna 10
+        capacidad = 10;
+        cancionesIds = new std::string[capacidad];
+        UdeATunesDataset::actualizarPeakMemory();
     }
-
     *UdeATunesDataset::iteraciones += contador;
     return *this;
 }
 int ListaFavoritos::getNumCanciones() const {
-    const ListaFavoritos* listaActual = obtenerListaExponer();
-    return listaActual->numCanciones;
+    int total = numCanciones;//esta siempre va contar es la propias de cada usuario
+    if (listaSeguida != nullptr) {
+        total += listaSeguida->getNumCancionesPropias();
+    }
+    return total;
 }
-
 void ListaFavoritos::reproducir(bool aleatoria) const {
     const ListaFavoritos* listaActual = obtenerListaExponer();
 }
-// En ListaFavoritos.cpp (o en ListaFavoritos.h si es inline)
 void ListaFavoritos::establecerCancionesPropias(std::string* nuevosIds, int numNuevos) {
-    // 1. Liberar la memoria antigua para evitar fugas (CRÍTICO)
-    if (this->cancionesIds != nullptr) {
+    if (this->cancionesIds != nullptr) {//esto es para evita alguna fuga
         delete[] this->cancionesIds;
-    }
-
-    // 2. Establecer el nuevo tamaño
-    this->numCanciones = numNuevos;
-
-    if (numNuevos > 0) {
-        // 3. Asignar nueva memoria
-        this->cancionesIds = new std::string[this->numCanciones];
-
-        // 4. Copiar los IDs
-        for (int i = 0; i < this->numCanciones; ++i) {
-            this->cancionesIds[i] = nuevosIds[i]; // Copia el string (NO punteros)
-        }
-    } else {
-        // 5. Si está vacía, asegurar que el puntero sea nullptr
         this->cancionesIds = nullptr;
     }
-
-    // NOTA: El puntero this->listaSeguida no se toca aquí.
+    this->numCanciones = numNuevos;
+    if (numNuevos > 0) {
+        this->capacidad = numNuevos;
+        this->cancionesIds = new std::string[this->capacidad];
+UdeATunesDataset::actualizarPeakMemory();
+        for (int i = 0; i < this->numCanciones; ++i) {
+            this->cancionesIds[i] = nuevosIds[i];
+        }
+    } else {//por si la lista esta vacia
+        this->capacidad = 10;
+        this->numCanciones = 0;
+        this->cancionesIds = new std::string[this->capacidad];//y que nunca apunte a nulo
+        UdeATunesDataset::actualizarPeakMemory();
+    }
 }
-std::string* ListaFavoritos::getListaCompletaDeIds(int& totalCanciones) const {
-
-    // 1. Obtener canciones propias
-    int propiasCount = this->numCanciones;       // Usa el contador de la lista actual
-    const std::string* propiasIds = this->cancionesIds; // Usa el array de IDs de la lista actual
-
-    // 2. Obtener canciones seguidas (con validación de puntero)
+std::string* ListaFavoritos::getListaCompletaDeIds(int& totalCanciones) const {//y ahora por si sigue a otro usuario mostrar la lista complet
+    int propiasCount = this->numCanciones;
+    const std::string* propiasIds = this->cancionesIds;
     int seguidasCount = 0;
     const std::string* seguidasIds = nullptr;
-
     if (this->listaSeguida != nullptr) {
-        // **IMPORTANTE:** Aquí asumimos que getNumCanciones() y getCancionesIds() en
-        // la lista seguida SÓLO devuelven sus propias canciones, evitando delegación recursiva.
-        seguidasCount = this->listaSeguida->getNumCanciones();
-        seguidasIds = this->listaSeguida->getCancionesIds();
+        seguidasCount = this->listaSeguida->numCanciones;
+        seguidasIds = this->listaSeguida->cancionesIds;
     }
-
     totalCanciones = propiasCount + seguidasCount;
-
     if (totalCanciones == 0) {
-        return nullptr; // No hay canciones en total
+        return nullptr;//unico caso
     }
-
-    // 3. Crear el array combinado (DEBE SER LIBERADO por el método que lo llama)
     std::string* listaCombinada = new std::string[totalCanciones];
-    int k = 0; // Índice para el nuevo array
-
-    // 4. Copiar IDs propios
+    UdeATunesDataset::actualizarPeakMemory();
+    int k = 0;
     for (int i = 0; i < propiasCount; ++i) {
         listaCombinada[k++] = propiasIds[i];
     }
-
-    // 5. Copiar IDs seguidos (si existen)
-    if (seguidasIds != nullptr && seguidasCount > 0) {
+    if (seguidasIds != nullptr && seguidasCount > 0) {//y esto para las que sigo
         for (int i = 0; i < seguidasCount; ++i) {
             listaCombinada[k++] = seguidasIds[i];
         }
     }
-
     return listaCombinada;
 }

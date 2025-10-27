@@ -26,7 +26,6 @@ public:
             Album* a, Artista* art, const Creditos& cred);
 
     Cancion();
-
     // Getters
     std::string getIdCompleto() const { return idCompleto; }
     std::string getNombre() const { return nombre; }           // ✅ Ya existe
