@@ -1,7 +1,7 @@
 #include "Album.h"
 #include <iostream>
 #include <string>
-#include <udeatunesdataset.h>
+#include "udeatunesdataset.h"
 using namespace std;
 const int ALBUM_CAPACIDAD_INICIAL = 10;
 const int GROW_FACTOR = 2;
@@ -9,6 +9,7 @@ void Album::resizeCanciones() {
     int contador=0;
     int nuevaCapacidad = capacidadCanciones * GROW_FACTOR;
     Cancion** nuevoArray = new Cancion*[nuevaCapacidad];
+    UdeATunesDataset::actualizarPeakMemory();
     for (int i = 0; i < numCanciones; ++i) {
         ++contador;
         nuevoArray[i] = canciones[i];
@@ -26,6 +27,7 @@ Album::Album()//constrctor de defecto
     artista(nullptr)
 {
     canciones = new Cancion*[capacidadCanciones];
+        UdeATunesDataset::actualizarPeakMemory();
 }
 //este es el que se va usar
 Album::Album(string id, const std::string& nom, const std::string& fecha, const std::string& port)
@@ -37,6 +39,7 @@ Album::Album(string id, const std::string& nom, const std::string& fecha, const 
     artista(nullptr)
 {
 canciones = new Cancion*[capacidadCanciones];//puntero a canciones
+        UdeATunesDataset::actualizarPeakMemory();
 }
 Album::~Album() {
     for (int i = 0; i < numCanciones; ++i) {
@@ -55,6 +58,7 @@ Album::Album(const Album& otra)
 {
     if (numGeneros > 0) {
         generos = new std::string[numGeneros];
+            UdeATunesDataset::actualizarPeakMemory();
         for (int i = 0; i < numGeneros; ++i) {
             generos[i] = otra.generos[i];
         }
@@ -62,6 +66,7 @@ Album::Album(const Album& otra)
         generos = nullptr;
     }
     canciones = new Cancion*[capacidadCanciones];
+        UdeATunesDataset::actualizarPeakMemory();
     for (int i = 0; i < numCanciones; ++i) {
         // este constructord de copia nos va servir para crear y asi evitar que el compilador se confunda
         canciones[i] = new Cancion(*(otra.canciones[i]));
@@ -93,6 +98,7 @@ nombre = otra.nombre;
     artista = nullptr;
     if (numGeneros > 0) {
         generos = new std::string[numGeneros];
+            UdeATunesDataset::actualizarPeakMemory();
         for (int i = 0; i < numGeneros; ++i) {
             ++contador;
             generos[i] = otra.generos[i];
@@ -101,9 +107,9 @@ nombre = otra.nombre;
         generos = nullptr;
     }
     canciones = new Cancion*[capacidadCanciones];
+        UdeATunesDataset::actualizarPeakMemory();
     for (int i = 0; i < numCanciones; ++i) {
         ++contador;
-        // Crea un nuevo objeto Cancion
         canciones[i] = new Cancion(*(otra.canciones[i]));
         canciones[i]->setAlbum(this);
     }
@@ -113,24 +119,18 @@ nombre = otra.nombre;
 bool Album::agregarCancion(Cancion* c) {
     int contador=0;
     if (!c) return false;
-
-    // evitar duplicados
     for (int i = 0; i < numCanciones; ++i){
         ++contador;
         if (canciones[i] == c) return false;
     }
     if (numCanciones >= capacidadCanciones)
         resizeCanciones();
-
     canciones[numCanciones++] = c;
     duracionTotal += c->getDuracion();
     *UdeATunesDataset::iteraciones += contador;
     return true;
 }
-
-
 void Album::setGeneros(const std::string* gens, int num) {//pa el futuro o si se implementa
-
     delete[] generos;
     generos = nullptr;
     if (num > 0 && gens) {
@@ -140,8 +140,7 @@ void Album::setGeneros(const std::string* gens, int num) {//pa el futuro o si se
             generos[i] = gens[i];
     } else numGeneros = 0;
 }
-
-void Album::mostrarInfo() const {
+void Album::mostrarInfo() const {//despliegue
     int contador=0;
     cout << "album" << endl;
     cout << "id: " << idAlbum << "nombre: " << nombre << endl;//el id del album igual, pero por ahora dejemoslo y si no lo quitamos

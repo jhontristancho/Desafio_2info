@@ -1,33 +1,27 @@
 #include "ListaFavoritos.h"
 #include <iostream>
-#include "UdeATunesDataset.h"
+#include <udeatunesdataset.h>
 #include "Cancion.h"
 #include <cstdlib>
 #include <ctime>
 using namespace std;
-
-// Constructor por defecto - cambiar long* a string*
 ListaFavoritos::ListaFavoritos()
-    : cancionesIds(new std::string[10]), numCanciones(0), capacidad(10), listaSeguida(nullptr) {}
-
-// Constructor con capacidad - cambiar long* a string*
+    : cancionesIds(new string[10]), numCanciones(0), capacidad(10), listaSeguida(nullptr) {}
+//este por si se conoce la capacidad si no se le asigna el por defecto con 10 canciones
 ListaFavoritos::ListaFavoritos(int capacidad)
-    : cancionesIds(new std::string[capacidad]), numCanciones(0), capacidad(capacidad),listaSeguida(nullptr) {}
-
-// Constructor de copia - cambiar long* a string*
+    : cancionesIds(new string[capacidad]), numCanciones(0), capacidad(capacidad),listaSeguida(nullptr) {}
+//constructor de copia
 ListaFavoritos::ListaFavoritos(const ListaFavoritos &l)
     : cancionesIds(new std::string[l.capacidad]), numCanciones(l.numCanciones), capacidad(l.capacidad), listaSeguida(nullptr) {
     for (int i = 0; i < numCanciones; i++) {
         cancionesIds[i] = l.cancionesIds[i];
     }
 }
-
-// Destructor
+//destrtor
 ListaFavoritos::~ListaFavoritos() {
     delete[] cancionesIds;
 }
-
-// Contiene canción - cambiar parámetro a string
+//para ver si ya esta esa cancion y lanzar un booleano a ver si si o no
 bool ListaFavoritos::contieneCancion(const std::string& id) const {
     int contador=0;
     for (int i = 0; i < numCanciones; i++) {
@@ -40,30 +34,24 @@ bool ListaFavoritos::contieneCancion(const std::string& id) const {
     *UdeATunesDataset::iteraciones += contador;
     return false;
 }
-
-// Agregar canción - ahora funciona correctamente
-bool ListaFavoritos::agregarCancion(const std::string& idCancion) {
+bool ListaFavoritos::agregarCancion(const string& idCancion) {
+    int contador=0;
     if (contieneCancion(idCancion)) {
-        std::cout << "La cancion ya esta en la lista" << std::endl;
+        cout << "esa cancion ya la agregaste" << endl;
         return false;
     }
     if (numCanciones >= MAX_CANCIONES) {
-        std::cout << "Limite maximo de canciones alcanzado (" << MAX_CANCIONES << ")" << std::endl;
+        cout << "ya alcanzaste el maximo de canciones que es  (" << MAX_CANCIONES << ")" <<endl;
         return false;
     }
-
     if (numCanciones >= capacidad) {
         redimensionar(capacidad * 2);
     }
-
     cancionesIds[numCanciones] = idCancion;
     numCanciones++;
-
-    std::cout << "Cancion " << idCancion << " agregada a favoritos" << std::endl;
+    *UdeATunesDataset::iteraciones+=contador;
     return true;
 }
-
-// Eliminar canción - cambiar parámetro a string
 bool ListaFavoritos::eliminarCancion(const std::string& id) {
     int contador=0;
     for (int i = 0; i < numCanciones; i++) {
@@ -74,76 +62,61 @@ bool ListaFavoritos::eliminarCancion(const std::string& id) {
                 cancionesIds[j] = cancionesIds[j + 1];
             }
             numCanciones--;
-            std::cout << "Cancion " << id << " eliminada de favoritos" << std::endl;
+            cout << "la cancion con el id de " << id << " fue eliminada de favoritos" << std::endl;
             *UdeATunesDataset::iteraciones += contador;
             return true;
         }
     }
-    std::cout << "Cancion " << id << " no encontrada en la lista" << std::endl;
+    cout << "la cancion  " << id << " no fue encontrada en la lista de favorito" << std::endl;
     *UdeATunesDataset::iteraciones += contador;
     return false;
 }
-
-// Redimensionar - cambiar long* a string*
 void ListaFavoritos::redimensionar(int nuevaCapacidad) {
     int contador=0;
-    std::string* nuevoArray = new std::string[nuevaCapacidad];  // Cambiar a string*
-
+    std::string* nuevoArray = new std::string[nuevaCapacidad];
+UdeATunesDataset::actualizarPeakMemory();
     for (int i = 0; i < numCanciones; i++) {
         ++contador;
         nuevoArray[i] = cancionesIds[i];
     }
-
-    delete[] cancionesIds;
+    delete[] cancionesIds;//para evitar lafuga
     cancionesIds = nuevoArray;
     capacidad = nuevaCapacidad;
     *UdeATunesDataset::iteraciones += contador;
 }
-
-// Actualizar otros métodos que usen cancionesIds
-void ListaFavoritos::mostrarLista() const {
+void ListaFavoritos::mostrarLista() const {//desplieque
     int contador=0;
-    std::cout << "LISTA DE FAVORITOS (" << numCanciones << " canciones)" << std::endl;
+    cout << "tu lista de favoritos con (" << numCanciones << " canciones)" <<endl;
     for (int i = 0; i < numCanciones; i++) {
         ++contador;
-        std::cout << "nombre: "<<(i + 1) << ". ID: " << cancionesIds[i] << std::endl;
+        cout << "cancion: "<<(i + 1) << ". ID: " << cancionesIds[i] <<endl;
     }
     if (numCanciones == 0) {
-        std::cout << "   (Lista vacia)" << std::endl;
+        cout << "tu lista no tiene canciones, empieza a agregar" <<endl;
     }
     *UdeATunesDataset::iteraciones += contador;
 }
-
-// Actualizar mostrarLista con dataset
-void ListaFavoritos::mostrarLista(const UdeATunesDataset* dataset) const {
+void ListaFavoritos::mostrarLista(const UdeATunesDataset* dataset) const {//ARREGLARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
     int contador=0;
     const ListaFavoritos* listaPropia = this;
     const ListaFavoritos* listaSeg = listaSeguida;
-
-    // Combinar si sigue a alguien
-    ListaFavoritos listaFinal = *listaPropia;
+    ListaFavoritos listaFinal = *listaPropia;//aca si sigue a alguien se combina utilizndo ese puntero
     if (listaSeg) {
         listaFinal = listaFinal + *listaSeg;
-        cout << "LISTA DE FAVORITOS COMBINADA ("
-             << listaFinal.getNumCanciones() << " canciones, incluyendo seguidas)"
-             << endl;
+        cout << "tu lista de favoritos incluyendo la del usuario al que sigues  ("<< listaFinal.getNumCanciones() << " canciones, muy buen gusto.)"<< endl;
     } else {
-        cout << "LISTA DE FAVORITOS (" << listaFinal.getNumCanciones() << " canciones)"
+        cout << "tu lista de favoritos (" << listaFinal.getNumCanciones() << " canciones, que buen gusto )"
              << endl;
     }
-
     if (listaFinal.getNumCanciones() == 0) {
-        cout << "    (Lista vacía)" << endl;
+        cout << "tienes la lista vacia, agrega canciones y escucha se que te van a gustar" << endl;
         return;
     }
-
     const std::string* canciones = listaFinal.getCancionesIds();
-
     for (int i = 0; i < listaFinal.getNumCanciones(); ++i) {
         ++contador;
         std::string idCancion = canciones[i];
         std::string nombreCancion = "Desconocida";
-
         if (dataset) {
             std::string linea = dataset->buscarLineaPorID(
                 dataset->getLineasCanciones(),
@@ -155,21 +128,18 @@ void ListaFavoritos::mostrarLista(const UdeATunesDataset* dataset) const {
                 nombreCancion = dataset->obtenerCampo(linea, 1);
             }
         }
-
         cout << "    " << (i + 1) << ". " << nombreCancion
-             << " (ID: " << idCancion << ")" << endl;
+             << " ID: " << idCancion << ")" << endl;
     }
     *UdeATunesDataset::iteraciones += contador;
 }
 ListaFavoritos ListaFavoritos::operator+(const ListaFavoritos &otra) const {
-    int contador=0;
+    int contador=0;//esto principalmente se va utilizar pa la logica de la lista a otro usuario que sigue
     ListaFavoritos nuevaLista(this->numCanciones + otra.numCanciones);
-
     for (int i = 0; i < this->numCanciones; i++) {
         ++contador;
         nuevaLista.agregarCancion(this->cancionesIds[i]);
     }
-
     for (int i = 0; i < otra.numCanciones; i++) {
         ++contador;
         nuevaLista.agregarCancion(otra.cancionesIds[i]);
@@ -177,46 +147,91 @@ ListaFavoritos ListaFavoritos::operator+(const ListaFavoritos &otra) const {
     *UdeATunesDataset::iteraciones += contador;
     return nuevaLista;
 }
-
-// Los demás métodos permanecen igual...
 const ListaFavoritos* ListaFavoritos::obtenerListaExponer() const {
     if (listaSeguida) {
         return listaSeguida;
     }
     return this;
 }
-// Operador de asignación
-ListaFavoritos& ListaFavoritos::operator=(const ListaFavoritos &l) {
+ListaFavoritos& ListaFavoritos::operator=(const ListaFavoritos &l){
     int contador=0;
     if (this == &l) {
         return *this;
     }
-
-    // Liberar memoria antigua
-    delete[] cancionesIds;
-
-    // Asignar nuevos valores
+    if (cancionesIds != nullptr) {
+        delete[] cancionesIds;//por si acaso
+    }
     capacidad = l.capacidad;
     numCanciones = l.numCanciones;
-    listaSeguida = l.listaSeguida;
-
-    // Reservar nueva memoria
-    cancionesIds = new std::string[capacidad];
-
-    // Copiar datos
-    for (int i = 0; i < numCanciones; i++) {
-        ++contador;
-        cancionesIds[i] = l.cancionesIds[i];
+    this->listaSeguida = nullptr;//por si apuntaba a alguna basura
+    if (capacidad > 0) { //siempre se reserva memoria, asa esa la lista est vacia
+        cancionesIds = new std::string[capacidad];
+UdeATunesDataset::actualizarPeakMemory();
+        for (int i = 0; i < numCanciones; i++) {
+            ++contador;
+            cancionesIds[i] = l.cancionesIds[i];
+        }
+    } else {//si es 0 asigna 10
+        capacidad = 10;
+        cancionesIds = new std::string[capacidad];
+        UdeATunesDataset::actualizarPeakMemory();
     }
     *UdeATunesDataset::iteraciones += contador;
     return *this;
 }
 int ListaFavoritos::getNumCanciones() const {
-    const ListaFavoritos* listaActual = obtenerListaExponer();
-    return listaActual->numCanciones;
+    int total = numCanciones;//esta siempre va contar es la propias de cada usuario
+    if (listaSeguida != nullptr) {
+        total += listaSeguida->getNumCancionesPropias();
+    }
+    return total;
 }
-
 void ListaFavoritos::reproducir(bool aleatoria) const {
     const ListaFavoritos* listaActual = obtenerListaExponer();
-    // ... implementación
+}
+void ListaFavoritos::establecerCancionesPropias(std::string* nuevosIds, int numNuevos) {
+    if (this->cancionesIds != nullptr) {//esto es para evita alguna fuga
+        delete[] this->cancionesIds;
+        this->cancionesIds = nullptr;
+    }
+    this->numCanciones = numNuevos;
+    if (numNuevos > 0) {
+        this->capacidad = numNuevos;
+        this->cancionesIds = new std::string[this->capacidad];
+UdeATunesDataset::actualizarPeakMemory();
+        for (int i = 0; i < this->numCanciones; ++i) {
+            this->cancionesIds[i] = nuevosIds[i];
+        }
+    } else {//por si la lista esta vacia
+        this->capacidad = 10;
+        this->numCanciones = 0;
+        this->cancionesIds = new std::string[this->capacidad];//y que nunca apunte a nulo
+        UdeATunesDataset::actualizarPeakMemory();
+    }
+}
+std::string* ListaFavoritos::getListaCompletaDeIds(int& totalCanciones) const {//y ahora por si sigue a otro usuario mostrar la lista complet
+    int propiasCount = this->numCanciones;
+    const std::string* propiasIds = this->cancionesIds;
+    int seguidasCount = 0;
+    const std::string* seguidasIds = nullptr;
+    if (this->listaSeguida != nullptr) {
+        seguidasCount = this->listaSeguida->numCanciones;
+        seguidasIds = this->listaSeguida->cancionesIds;
+    }
+    totalCanciones = propiasCount + seguidasCount;
+    if (totalCanciones == 0) {
+        return nullptr;//unico caso
+    }
+    std::string* listaCombinada = new std::string[totalCanciones];
+    UdeATunesDataset::actualizarPeakMemory();
+    int k = 0;
+    for (int i = 0; i < propiasCount; ++i) {
+        listaCombinada[k++] = propiasIds[i];
+    }
+    if (seguidasIds != nullptr && seguidasCount > 0) {//y esto para las que sigo
+        for (int i = 0; i < seguidasCount; ++i) {
+            listaCombinada[k++] = seguidasIds[i];
+        }
+    }
+    return listaCombinada;
 }

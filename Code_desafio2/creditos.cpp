@@ -2,6 +2,7 @@
 #include <iostream>
 #include <udeatunesdataset.h>
 using namespace std;
+//recordemos que esto es mas pesado en futuro
 Creditos::Creditos()
     : productores(nullptr), numProductores(0),
     musicos(nullptr), numMusicos(0),
@@ -29,49 +30,39 @@ Creditos::Creditos(const Creditos& otra)
     deepCopy(compositores, otra.compositores, numCompositores);
 }
 void Creditos::setProductores(const Colaborador* prod, int num) {
-    int contador=0;
     delete[] productores;
     productores = nullptr;
     if (num > 0 && prod != nullptr) {
         productores = new Colaborador[num];
         for (int i = 0; i < num; ++i) {
-            ++contador;
-            productores[i] = prod[i]; // copia del objeto colaborador
+            productores[i] = prod[i];
         }
     }
-    *UdeATunesDataset::iteraciones += contador;
     numProductores = num;
 }
 void Creditos::setMusicos(const Colaborador* mus, int num) {
-    int contador=0;
     delete[] musicos;
     musicos = nullptr;
     if (num > 0 && mus != nullptr) {
         musicos = new Colaborador[num];
         for (int i = 0; i < num; ++i) {
-            ++contador;
             musicos[i] = mus[i];
         }
     }
-    *UdeATunesDataset::iteraciones += contador;
     numMusicos = num;
 }
 void Creditos::setCompositores(const Colaborador* comp, int num) {
-    int contador=0;
     delete[] compositores;
     compositores = nullptr;
     if (num > 0 && comp != nullptr) {
         compositores = new Colaborador[num];
         for (int i = 0; i < num; ++i) {
-            ++contador;
             compositores[i] = comp[i];
         }
     }
-    *UdeATunesDataset::iteraciones += contador;
     numCompositores = num;
 }
-
-void Creditos::mostrarCreditos() const {
+void Creditos::mostrarCreditos() const {//en la hoja todavia no se habla de mostrar creditos pero si nos piden la funcionalidad aqui estaria
     auto imprimirLista = [](const Colaborador* lista, int num, const std::string& titulo) {
     cout<< titulo << " " << num << ":";
         if (num == 0) {
@@ -85,9 +76,8 @@ void Creditos::mostrarCreditos() const {
         }
         cout <<endl;
     };
-
     cout << "creditos"<< endl;
-    imprimirLista(productores, numProductores, "Productores");
+    imprimirLista(productores, numProductores, "productores");
     imprimirLista(musicos, numMusicos, "musicos");
     imprimirLista(compositores, numCompositores, "compositores");
 }
